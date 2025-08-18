@@ -1,0 +1,180 @@
+{% extends layout_path %}
+
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }} {% endblock %}
+
+{% block vendor_css %}
+{{ block.super }}
+  <link rel="stylesheet" href="{% static 'vendor/libs/apex-charts/apex-charts.css' %}" />
+
+  <link rel="stylesheet" href="{% static "assets/css/common.css" %}">
+
+{% endblock vendor_css %}
+
+{% block vendor_js %}
+{{ block.super }}
+  <script src="{% static 'vendor/libs/apex-charts/apexcharts.js' %}"></script>
+{% endblock vendor_js %}
+
+{% block page_js %}
+  {{ block.super }}
+    <script src="{% static 'js/dashboards-analytics.js' %}"></script>
+{% endblock page_js %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+  <div class="row justify-content-center">
+    <div class="col-lg-15 col-xl-12">
+      <div class="card card-modern">
+        <div class="card-body p-4 p-md-5">
+
+          <!-- Header -->
+          <div class="d-flex align-items-center justify-content-between mb-4">
+            <h3 class="section-title mb-0">Add Clinic</h3>
+            <a href="{% url 'view_clinic'  %}" class="btn btn-outline-secondary">View Clinics</a>
+          </div>
+
+                {% for msg in messages %}
+                {% if msg.tags == "success" %}
+                    <div class="alert alert-success">
+                {% elif msg.tags == "error" %}
+                    <div class="alert alert-danger">
+                {% else %}
+                    <div class="alert alert-info">
+                {% endif %}
+                    {{ msg }}
+                    </div>
+                {% endfor %}
+
+
+          <form method="POST" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <div class="row g-4">
+
+              <!-- Clinic Name -->
+              <div class="col-md-6">
+                <label for="name" class="form-label">Clinic Name</label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="Enter clinic name" required>
+              </div>
+
+              <!-- Clinic ID -->
+              <div class="col-md-6">
+                <label for="clinicid" class="form-label">Clinic ID</label>
+                <input type="text" class="form-control" id="clinicid" name="clinicid" value="{{clinic_id}}" readonly required>
+              </div>
+
+              <!-- Phone -->
+              <div class="col-md-6">
+                <label for="phone" class="form-label">Phone</label>
+                <input type="text" class="form-control" id="phone" name="phone" placeholder="+91-9999999999">
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-6">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required>
+              </div>
+
+              <!-- Logo + preview -->
+              <div class="col-md-6">
+                <label for="logo" class="form-label">Clinic Logo</label>
+                <div class="d-flex align-items-center gap-3">
+                  {% comment %} <img id="logoPreview"
+                       src="{% if clinic and clinic.logo %}{{ clinic.logo.url }}{% endif %}"
+                       class="rounded border"
+                       style="width:56px;height:56px;object-fit:cover;background:#f8fafc;"> {% endcomment %}
+                  <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                </div>
+                <small class="text-muted">PNG/JPG, recommended 200×200</small>
+              </div>
+
+
+
+              <!-- Status -->
+              <div class="col-md-6">
+                <label class="form-label d-block">Status</label>
+                <div class="form-check form-switch pt-1">
+                  <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                  <label class="form-check-label" for="is_active">Active</label>
+                </div>
+              </div>
+
+            </div>
+
+
+          <div class="mt-5">
+            <div class="card">
+              <div class="card-header bg-secondary text-white">
+                <p class="mb-0 text-white">Weekly Schedule</p>
+              </div>
+              <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                      <thead class="table-light text-center">
+                        <tr>
+                          <th>Day</th>
+                          <th>Start Time</th>
+                          <th>End Time</th>
+                        </tr>
+                      </thead>
+                      <tbody class="text-center">
+                        <tr>
+                          <td>Monday</td>
+                          <td><input type="time" class="form-control" name="monday_start"></td>
+                          <td><input type="time" class="form-control" name="monday_end"></td>
+                        </tr>
+                        <tr>
+                          <td>Tuesday</td>
+                          <td><input type="time" class="form-control" name="tuesday_start"></td>
+                          <td><input type="time" class="form-control" name="tuesday_end"></td>
+                        </tr>
+                        <tr>
+                          <td>Wednesday</td>
+                          <td><input type="time" class="form-control" name="wednesday_start"></td>
+                          <td><input type="time" class="form-control" name="wednesday_end"></td>
+                        </tr>
+                        <tr>
+                          <td>Thursday</td>
+                          <td><input type="time" class="form-control" name="thursday_start"></td>
+                          <td><input type="time" class="form-control" name="thursday_end"></td>
+                        </tr>
+                        <tr>
+                          <td>Friday</td>
+                          <td><input type="time" class="form-control" name="friday_start"></td>
+                          <td><input type="time" class="form-control" name="friday_end"></td>
+                        </tr>
+                        <tr>
+                          <td>Saturday</td>
+                          <td><input type="time" class="form-control" name="saturday_start"></td>
+                          <td><input type="time" class="form-control" name="saturday_end"></td>
+                        </tr>
+                        <tr>
+                          <td>Sunday</td>
+                          <td><input type="time" class="form-control" name="sunday_start"></td>
+                          <td><input type="time" class="form-control" name="sunday_end"></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+              </div>
+            </div>
+          </div>
+
+
+            <!-- Actions -->
+            <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top">
+              <a  href="{% url "view_clinic" %}" class="btn btn-outline-secondary btn-soft">Cancel</a>
+              <button type="submit" class="btn btn-primary btn-soft">Save Clinic</button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

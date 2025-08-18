@@ -1,0 +1,6 @@
+    .card-modern{border:0;border-radius:16px;box-shadow:0 8px 24px rgba(2,6,23,.06);}
+    .section-title{font-weight:600;color:#334155;}
+    .form-label{color:#64748b;font-weight:600;}
+    .form-control{border-radius:12px;}
+    .form-control:focus{border-color:#6366f1; box-shadow:0 0 0 .25rem rgba(99,102,241,.15);}
+    .btn-soft{border-radius:12px;padding:.6rem 1.15rem;}

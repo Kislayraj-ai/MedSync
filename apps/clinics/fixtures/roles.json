@@ -1,0 +1,23 @@
+[
+    {
+        "model": "clinics.roles",
+        "pk": 1,
+        "fields": {
+            "name": "ADMIN"
+        }
+    },
+    {
+        "model": "clinics.roles",
+        "pk": 2,
+        "fields": {
+            "name": "DOCTOR"
+        }
+    },
+    {
+        "model": "clinics.roles",
+        "pk": 3,
+        "fields": {
+            "name": "PATIENT"
+        }
+    }
+]

@@ -1,0 +1,188 @@
+{% extends layout_path %}
+
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }} {% endblock %}
+
+{% block vendor_css %}
+{{ block.super }}
+  <link rel="stylesheet" href="{% static 'vendor/libs/apex-charts/apex-charts.css' %}" />
+  <link rel="stylesheet" href="{% static "assets/css/common.css" %}">
+
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock vendor_css %}
+
+
+
+{% block page_js %}
+  {{ block.super }}
+    <script src="{% static 'js/dashboards-analytics.js' %}"></script>
+{% endblock page_js %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+  <div class="row justify-content-center">
+    <div class="col-lg-15 col-xl-12">
+      <div class="card card-modern">
+        <div class="card-body p-4 p-md-5">
+
+          <!-- Header -->
+          <div class="d-flex align-items-center justify-content-between mb-4">
+            <h3 class="section-title mb-0">{{ page_title }}</h3>
+            <a href="{% url 'view_clinic'  %}" class="btn btn-outline-secondary">View Doctors</a>
+          </div>
+
+                {% for msg in messages %}
+                {% if msg.tags == "success" %}
+                    <div class="alert alert-success">
+                {% elif msg.tags == "error" %}
+                    <div class="alert alert-danger">
+                {% else %}
+                    <div class="alert alert-info">
+                {% endif %}
+                    {{ msg }}
+                    </div>
+                {% endfor %}
+
+
+          <form method="POST" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+                <div class="row g-4">
+
+                <input type="hidden" name="pkid"  value="{{doctorinfo.id}}" />
+
+                <!-- Username -->
+                <div class="col-md-6">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" value="{{doctorinfo.username}}" placeholder="Enter username" required>
+                </div>
+
+                <!-- First Name -->
+                <div class="col-md-6">
+                    <label for="first_name" class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="first_name" name="first_name" value="{{doctorinfo.first_name}}" placeholder="First name">
+                </div>
+
+                <!-- Last Name -->
+                <div class="col-md-6">
+                    <label for="last_name" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{doctorinfo.last_name}}" placeholder="Last name">
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{doctorinfo.last_name}}" placeholder="example@email.com" required>
+                </div>
+
+                <!-- Password -->
+                {% comment %} <div class="col-md-6">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                </div> {% endcomment %}
+
+                <!-- Role Dropdown -->
+                <div class="col-md-6">
+                    <label for="role" class="form-label">Role</label>
+                    <select class="form-select" id="role" name="role" required>
+                        <option value="2" selected>Doctor</option>
+                    </select>
+                </div>
+
+                <!-- Specialization -->
+                <div class="col-md-6">
+                    <label for="specialization" class="form-label">Specialization</label>
+                    <input type="text" class="form-control" id="specialization" value="{{doctorprofile.specialization}}" name="specialization" placeholder="e.g. Cardiologist">
+                </div>
+
+                <!-- Experience -->
+                <div class="col-md-6">
+                    <label for="experience" class="form-label">Experience (Years)</label>
+                    <input type="number" class="form-control" id="experience" name="experience" value="{{doctorprofile.experience}}" min="0" placeholder="5">
+                </div>
+
+                <!-- Fees -->
+                <div class="col-md-6">
+                    <label for="fees" class="form-label">Fees</label>
+                    <div class="input-group">
+                        <span class="input-group-text" id="fees-addon">Rs</span>
+                        <input type="number" step="0.01" class="form-control" id="fees" name="fees" 
+                        value="{{doctorprofile.fees}}" placeholder="500.00">
+                    </div>
+                </div>
+
+                <!-- Clinic -->
+                <div class="col-md-6">
+                    <label for="clinic" class="form-label">Clinic</label>
+                    <select class="form-select" id="clinic" name="clinic">
+                    {% for clinic in clinics %}
+                    <option value="{{ clinic.id }}">{{ clinic.name }}</option>
+                    {% endfor %}
+                    </select>
+                </div>
+
+
+
+                </div>
+
+
+            <!-- Actions -->
+            <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top">
+              <a  href="{% url "view_clinic" %}" class="btn btn-outline-secondary btn-soft">Cancel</a>
+              <button type="submit" class="btn btn-primary btn-soft">Save Doctor</button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block vendor_js %}
+
+{{block.super}}
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+       
+
+    $(document).ready(()=>{
+        let GET_BASE_URL = "{{ BASE_URL }}";
+        let clinicId =  "{{ doctorprofile.clinic_id }}"
+        console.log("clinc " , clinicId)
+
+     $('#clinic').select2({
+            placeholder : 'Choose Doctor' ,
+            width: '100%' ,
+        })
+
+        const fetchClinic = () =>{
+
+            $.ajax({
+                url : `${GET_BASE_URL}/api/v1/clinics` ,
+                type : "GET" ,
+                success : (data) =>{
+                    //console.log(data)
+
+                    data.forEach((item)=>{
+
+                        $('#clinic').append(
+                            new Option(item.name, item.id, false, false)
+                        )
+                    })
+
+                    $('#clinic').val(parseInt(clinicId)).trigger('change')
+                }
+            })
+        }
+
+        fetchClinic()
+    })
+</script>
+{% endblock vendor_js %}

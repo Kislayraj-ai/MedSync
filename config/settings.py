@@ -67,6 +67,10 @@ INSTALLED_APPS = [
     "apps.forms",
     "apps.form_layouts",
     "apps.tables",
+    'rest_framework' ,
+    "apps.clinics",
+    "api" ,
+    "corsheaders" ,
 ]
 
 MIDDLEWARE = [
@@ -79,6 +83,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS  = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -170,8 +180,12 @@ STATICFILES_DIRS = [
     BASE_DIR / "src" / "assets",
 ]
 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR , 'media')
+
 # Default URL on which Django application runs for specific environment
-BASE_URL = os.environ.get("BASE_URL", default="http://127.0.0.1:8000")
+BASE_URL = os.environ.get("BASE_URL", default="http://localhost:8000/")
 
 
 # Default primary key field type
@@ -189,3 +203,4 @@ THEME_VARIABLES = THEME_VARIABLES
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+# AUTH_USER_MODEL  = 'clinics.UserRole'

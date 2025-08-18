@@ -7,16 +7,16 @@
 
 {% block vendor_css %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'vendor/libs/apex-charts/apex-charts.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/libs/apex-charts/apex-charts.css' %}" />
 {% endblock vendor_css %}
 
 {% block vendor_js %}
 {{ block.super }}
-<script src="{% static 'vendor/libs/apex-charts/apexcharts.js' %}"></script>
+  <script src="{% static 'vendor/libs/apex-charts/apexcharts.js' %}"></script>
 {% endblock vendor_js %}
 
 {% block page_js %}
-{{ block.super }}
+  {{ block.super }}
 <script src="{% static 'js/dashboards-analytics.js' %}"></script>
 {% endblock page_js %}
 

@@ -1,0 +1,180 @@
+{% extends layout_path %}
+
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }} {% endblock %}
+
+{% block vendor_css %}
+{{ block.super }}
+  <link rel="stylesheet" href="{% static 'vendor/libs/apex-charts/apex-charts.css' %}" />
+  <link rel="stylesheet" href="{% static "assets/css/common.css" %}">
+
+{% endblock vendor_css %}
+
+{% block vendor_js %}
+{{ block.super }}
+  <script src="{% static 'vendor/libs/apex-charts/apexcharts.js' %}"></script>
+{% endblock vendor_js %}
+
+{% block page_js %}
+  {{ block.super }}
+    <script src="{% static 'js/dashboards-analytics.js' %}"></script>
+{% endblock page_js %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+  <div class="row justify-content-center">
+    <div class="col-lg-15 col-xl-12">
+      <div class="card card-modern">
+        <div class="card-body p-4 p-md-5">
+
+          <!-- Header -->
+          <div class="d-flex align-items-center justify-content-between mb-4">
+            <h3 class="section-title mb-0">Edit Clinic</h3>
+            <a href="{% url 'view_clinic'  %}" class="btn btn-outline-secondary">View Clinics</a>
+          </div>
+
+                {% for msg in messages %}
+                {% if msg.tags == "success" %}
+                    <div class="alert alert-success">
+                {% elif msg.tags == "error" %}
+                    <div class="alert alert-danger">
+                {% else %}
+                    <div class="alert alert-info">
+                {% endif %}
+                    {{ msg }}
+                    </div>
+                {% endfor %}
+
+
+          <form method="POST" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <div class="row g-4">
+
+                
+                <input type="hidden" class="form-control" id="pkid" name="pkid" value="{{ clinic.id }}"
+                required>
+              <!-- Clinic Name -->
+              <div class="col-md-6">
+                <label for="name" class="form-label">Clinic Name</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ clinic.name }}"
+                 placeholder="Enter clinic name" required>
+              </div>
+
+              <!-- Clinic ID -->
+              <div class="col-md-6">
+                <label for="clinicid" class="form-label">Clinic ID</label>
+                <input type="text" class="form-control" id="clinicid" name="clinicid"
+                value="{{ clinic.clinicid }}"
+                readonly required>
+              </div>
+
+              <!-- Phone -->
+              <div class="col-md-6">
+                <label for="phone" class="form-label">Phone</label>
+                <input type="text" class="form-control" id="phone"
+                    value="{{ clinic.phone }}"
+                name="phone" placeholder="+91-9999999999">
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-6">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email"
+                       value="{{ clinic.email }}"
+                name="email" placeholder="example@email.com" required>
+              </div>
+
+              <!-- Logo + preview -->
+              <div class="col-md-6">
+                <div class="card shadow-sm p-3" style="width: 18rem;">
+                  <div class="card-body text-center">
+                    {% if clinic.logo %}
+                      <img src="{{ clinic.logo.url }}" 
+                          class="rounded border mb-3"
+                          style="width: 100%; height: 12rem; object-fit: cover; background: #f8fafc;"
+                          alt="Logo">
+                    {% else %}
+                      <div class="d-flex align-items-center justify-content-center rounded border mb-3"
+                          style="width: 100%; height: 12rem; background: #f8fafc;">
+                        <span class="text-muted">No Logo</span>
+                      </div>
+                    {% endif %}
+
+                    <label for="logo" class="form-label fw-semibold">Clinic Logo</label>
+                    <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                  </div>
+                </div>
+                <small class="text-muted">PNG/JPG, recommended 200x200</small>
+                            
+              </div>
+
+                
+
+
+
+              <!-- Status -->
+              <div class="col-md-6">
+                <label class="form-label d-block">Status</label>
+                <div class="form-check form-switch pt-1">
+                  <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                  {% if clinic.is_active %}Checked{% endif %}
+                  >
+                  <label class="form-check-label" for="is_active">Active</label>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mt-5">
+            <div class="card">
+              <div class="card-header bg-secondary text-white">
+                <p class="mb-0 text-white">Weekly Schedule</p>
+              </div>
+              <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                      <thead class="table-light text-center">
+                        <tr>
+                          <th>Day</th>
+                          <th>Start Time</th>
+                          <th>End Time</th>
+                        </tr>
+                      </thead>
+                      <tbody class="text-center">
+
+                       {% for day, times in clinic.timings.items %}
+                          <tr>
+                              <td>{{ day }}</td>
+                              <td>
+                                  <input type="time" class="form-control" name="{{ day|lower }}_start" value="{{ times.start|time:"H:i" }}">
+                              </td>
+                              <td>
+                                  <input type="time" class="form-control" name="{{ day|lower }}_end" value="{{ times.end|time:"H:i" }}">
+                              </td>
+                          </tr>
+                          {% endfor %}
+
+                      </tbody>
+                    </table>
+                  </div>
+              </div>
+            </div>
+          </div>
+
+            <!-- Actions -->
+            <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top">
+              <a  class="btn btn-outline-secondary btn-soft">Cancel</a>
+              <button type="submit" class="btn btn-primary btn-soft">Update Clinic</button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
