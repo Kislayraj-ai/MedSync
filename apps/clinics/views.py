@@ -376,4 +376,3 @@ class DoctorViewEdit(TemplateView):
             print(f"Error :- {e}")
             return redirect('edit_doctor' , pkid)
             
-        

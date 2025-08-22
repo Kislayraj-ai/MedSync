@@ -11,5 +11,6 @@ doctorouter.register('doctors' , views.DoctorView , basename='doctors')
 
 urlpatterns =[
     path('' , include(router.urls) ) ,
-    path("", include(doctorouter.urls))
+    path("", include(doctorouter.urls)) ,
+    path("patients/" , views.PatientListView.as_view() , name='patients_list')
 ]

@@ -12,9 +12,13 @@ urlpatterns = [
 
     # Clinic urls
     path('clinic/' , include("apps.clinics.urls") ) ,
+    
 
     # apis endpoints
-    path('api/v1/' , include('api.urls'))
+    path('api/v1/' , include('api.urls')),
+
+    # Clinic urls
+    path('patients/' , include("apps.patients.urls") ) ,
 
 ] + static(settings.MEDIA_URL , document_root =  settings.MEDIA_ROOT)
 

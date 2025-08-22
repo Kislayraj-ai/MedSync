@@ -1,0 +1,109 @@
+{% extends layout_path %}
+
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }} {% endblock %}
+
+{% block vendor_css %}
+{{ block.super }}
+  <link rel="stylesheet" href="{% static 'js/DataTables/datatables.min.css' %}" />
+  <link rel="stylesheet" href="{% static "assets/css/common.css" %}">
+
+{% endblock vendor_css %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <div class="row justify-content-center">
+    <div class="col-lg-15 col-xl-12">
+      <div class="card card-modern">
+        <div class="card-body p-4 p-md-5">
+
+                <!-- Header -->
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h3 class="section-title mb-0">{{ page_title }}</h3>
+                    <a href="{% url 'patient_add'  %}" class="btn btn-outline-secondary">Add Patient</a>
+                </div>
+
+                {% for msg in messages %}
+                {% if msg.tags == "success" %}
+                    <div class="alert alert-success">
+                {% elif msg.tags == "error" %}
+                    <div class="alert alert-danger">
+                {% else %}
+                    <div class="alert alert-info">
+                {% endif %}
+                    {{ msg }}
+                    </div>
+                {% endfor %}
+
+                    <div class="row">
+                        <div class="col-lg-12 col-lg-15">
+                            <table id="clinicTable" class="table table-bordered table-striped" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>FullName</th>
+                                        <th>Email</th>
+                                        <th>DOB</th>
+                                        <th>Age</th>
+                                        <th>Doctor</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+
+                            </table>
+                        </div>
+
+                    </div>
+
+        </div>
+    </div>
+    </div>
+</div>
+</div>
+
+
+{% endblock  %}
+
+
+{% block page_js %}
+
+{{ block.super }}
+    <script src="{% static 'js/DataTables/datatables.min.js' %}"></script>
+    <script>
+    $(document).ready(function() {
+
+        let GET_BASE_URL = "{{ BASE_URL }}";
+
+        $('#clinicTable').DataTable({
+            ajax: { 
+                type : 'GET',
+                url: `${GET_BASE_URL}/api/v1/patients`,
+                dataSrc: function (json) {
+                    console.log("Full Response:", json);
+                    return json;
+                }
+            },
+            columns: [
+                { data: "firstname" ,
+                    render :(data, type,row) =>{
+                        return `${row.firstname} ${row.lastname}`
+                    }
+                },
+                { data: "email" },
+                { data: "dob" },
+                { data: "p_age" },
+                { data: "doctorfullname" },
+                  { 
+                    data: "userid",
+                    render: function(data , type, row) {
+                        return `
+                            <a  href="/patients/edit-patient/${parseInt(row.userid)}/" class="btn btn-sm btn-primary">Edit</a>`;
+                    }
+                }
+            ]
+        });
+
+    });
+    </script>
+{% endblock %}
