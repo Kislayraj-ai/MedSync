@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "api" ,
     "corsheaders" ,
     "apps.patients" ,
+    "django_mysql",
 ]
 
 MIDDLEWARE = [

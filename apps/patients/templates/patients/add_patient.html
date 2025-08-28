@@ -28,7 +28,7 @@
                   <a href="{% url 'view_patients'  %}" class="btn btn-outline-secondary">View Patient</a>
               </div>
 
-
+              
                 {% for msg in messages %}
                 {% if msg.tags == "success" %}
                     <div class="alert alert-success">
@@ -43,7 +43,7 @@
             {% comment %} Main Form Here {% endcomment %}
             <form method="POST" enctype="multipart/form-data">
               {% csrf_token %}
-              <div class="row g-4">
+              
 
                 <div class="row g-4">
 
@@ -71,13 +71,31 @@
                     <div class="form-text">Please upload image</div>
                   </div>
 
+                  {% comment %} end for the image {% endcomment %}
+
+                      <div class="col-md-6">
+                        <label for="appdate">Appointment Date</label>
+                        {% comment %} <select name="appdate" id="appdate" class='form-control'>
+                        </select> {% endcomment %}
+                        <input type="text" name="appdate" id="appdate" class='form-control' value="{{ selecteddate }}" required readonly />
+                      </div>
+
+                    <div class="col-md-6">
+                      <label for="apptime">Appointment Time</label>
+                      <select name="apptime" id="apptime" class='form-control'>
+                      </select>
+                    </div>
+
+
                   {% for field in user_form %}
                   
                       {% if field.name != "username"  or field.name != "p_age" %}
                         <div class="col-md-6">
                           <label class="form-label">{{ field.label }}</label>
                           {{ field }}
-                          {{ field.errors }}
+                            <div class="p text-danger">
+                            {{ field.errors }}
+                          </div>
                         </div>
                       {% endif %}
                     {% endfor %}
@@ -92,17 +110,20 @@
                       <div class="col-md-6">
                           <label class="form-label">{{ field.label }}</label>
                           {{ field }}
-                          {{ field.errors }}
+                          <div class="p text-danger">
+                            {{ field.errors }}
+                          </div>
                       </div>
                     {% endif %}
                   {% endfor %}
 
-              </div>
+                </div>
 
               <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top">
                 <a class="btn btn-outline-secondary">Cancel</a>
                 <button type="submit" class="btn btn-primary">Save Patient</button>
               </div>
+           
             </form>
 
 
@@ -138,16 +159,27 @@
 
   $(document).ready(()=>{
         let GET_BASE_URL = "{{ BASE_URL }}";
+        let seleteddate =  "{{selecteddate}}"
+        let seletedtime =  "{{selectedtime}}"
+        let clinicid =  "{{clinicid}}"
+        let doctorid =  "{{doctorid}}"
+
+
 
         $('#doctor').select2({
             placeholder : 'Choose Doctor' ,
             width: '100%' ,
         })
 
-        const fetchClinic = () =>{
+        $('#apptime').select2({
+            placeholder : 'Choose app time' ,
+            width: '100%' ,
+        })
 
+        const fetchClinic = () =>{
             $.ajax({
                 url : `${GET_BASE_URL}/api/v1/doctors` ,
+                data : { clinicid: clinicid  } ,
                 type : "GET" ,
                 success : (data) =>{
 
@@ -156,7 +188,7 @@
                       $('#doctor').append(
                             new Option("Select Doctor", 0 , false, false)
                       )
-                    data.forEach((item)=>{
+                      data.forEach((item)=>{
                      // console.log("get", item)
                         $('#doctor').append(
                             new Option(`${item.first_name} ${item.last_name}`, item.id, false, false)
@@ -167,6 +199,37 @@
                 }
             })
         }
+
+        // fetch the avail
+
+        const fetchAvailSlots = ()=>{
+
+          $.ajax({
+                url : `${GET_BASE_URL}/api/v1/get-available-clinic-slots` ,
+                type : "GET" ,
+                data :{
+                  clinicid , doctorid ,
+                  date : seleteddate ,  time: seletedtime
+                },
+                success : (response)=>{
+                  //console.log("Get result " , response)
+                      $('#apptime').empty();
+                      $('#apptime').append(
+                            new Option("Select time", 0 , false, false)
+                      )
+                      response.available.forEach((item)=>{
+                        // console.log("get", item)
+                        $('#apptime').append(
+                            new Option(item , item, false, false)
+                        )
+                    })
+
+                    $('#apptime').trigger('change')
+                }
+          })
+        }
+        
+        fetchAvailSlots()
 
       fetchClinic()
 

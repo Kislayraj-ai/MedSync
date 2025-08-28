@@ -12,5 +12,8 @@ doctorouter.register('doctors' , views.DoctorView , basename='doctors')
 urlpatterns =[
     path('' , include(router.urls) ) ,
     path("", include(doctorouter.urls)) ,
-    path("patients/" , views.PatientListView.as_view() , name='patients_list')
+    path("patients/" , views.PatientListView.as_view() , name='patients_list') ,
+
+    ## get available slot for the clinic
+    path('get-available-clinic-slots' , views.ClinicAvailableTimeSlots.as_view() , name="clinic_available_time_slots")
 ]

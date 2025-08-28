@@ -2,7 +2,7 @@ from django.shortcuts import render , redirect , get_object_or_404
 from web_project  import TemplateLayout
 from django.views.generic import TemplateView
 from django.conf import settings
-from .models import PatientProfile
+from .models import PatientProfile ,Apointment
 from django.contrib.auth.models import User
 from datetime import date , datetime
 from django.contrib import messages
@@ -13,15 +13,27 @@ from django.db import transaction
 
 class PatientAdd(TemplateView):
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self , **kwargs):
         context = TemplateLayout.init(self , super().get_context_data(**kwargs))
         context["page_title"] = 'Add Patients'
         context["BASE_URL"] = settings.BASE_URL
 
-
+        # print("kwargs",  self.kwargs )
+        ## get from the query params
+        date = self.request.GET.get("date")
+        time = self.request.GET.get("time")
+        clinicid = self.request.GET.get("clinicid")
+        doctorid = self.request.GET.get("doctor")
+        
 
         context["user_form"] = kwargs.get('user_form' , UserForm())
         context["profile_form"] = kwargs.get('profile_form' , PatientProfileForm)
+
+        context["selecteddate"] = date
+        context["selectedtime"] = time
+
+        context["clinicid"] = clinicid
+        context["doctorid"] = doctorid
 
         return context
     
@@ -123,7 +135,7 @@ class PatientAdd(TemplateView):
 
                             profile = profile_form.save(commit=False)
                             profile.patient = user
-                            profile.doctor_id = request.POST.get('doctor')
+                            # profile.doctor_id = request.POST.get('doctor')
 
                             today = date.today()
                             calculated_age = today.year - dob.year
@@ -132,11 +144,27 @@ class PatientAdd(TemplateView):
                             
                             profile.p_age = calculated_age
 
+                            ## save the appointment for the patient
+                            doctorid = request.POST.get('doctor')
+                            appdate = request.POST.get('appdate')
+                            apptime = request.POST.get('apptime')
+                            appdate_obj = datetime.strptime(appdate, "%Y-%m-%d").date()
+                            apptime_obj = datetime.strptime(apptime, "%H:%M").time()
+
+                            app =  Apointment()
+                            app.doctor_id =  doctorid
+                            app.patient = profile
+                            app.appdate = appdate_obj
+                            app.apptime = apptime_obj
+                            app.status =  0
+                            app.is_active =  0
+                    
                             user.save()
                             profile.save()
+                            app.save()
 
                         messages.success(request, "Patient created successfully")
-                        return redirect("patient_add")
+                        return redirect("add_appointment")
                     else:
                         # print("UserForm Errors:", user_form.errors)
                         # print("ProfileForm Errors:", profile_form.errors)
@@ -150,7 +178,7 @@ class PatientAdd(TemplateView):
 
             except Exception as e :
                 messages.error(request, f"Error :- {e}")
-                return redirect("patient_add")
+                return redirect("add_appointment")
             
 
 class PatientEdit(TemplateView):
@@ -229,3 +257,13 @@ class PatientEdit(TemplateView):
             except Exception as e :
                     messages.error(request, f"Error:- {e}")
                     return redirect("patient_edit" , user_id)
+            
+
+## add the appointment
+
+class AddAppointmentView(TemplateView):
+    def get_context_data(self, **kwargs):
+        context = TemplateLayout.init(self , super().get_context_data(**kwargs))
+        context["page_title"] = 'Add Appointment' 
+        return context
+    

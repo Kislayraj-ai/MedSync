@@ -1,0 +1,166 @@
+{% extends layout_path %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }} {% endblock %}
+
+{% block vendor_css %}
+{{ block.super }}
+  <link rel="stylesheet" href="{% static 'vendor/libs/apex-charts/apex-charts.css' %}" />
+  <link rel="stylesheet" href="{% static "css/common.css" %}">
+
+
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock vendor_css %}
+
+{% block content %}
+
+  <div class="row gap-4 mb-3">
+    <div class="card">
+      <div class="card-header p-3 d-flex justify-content-between w-100" id='appointmentcalendercard'>
+        <h4>Appointment Calender</h4>
+        {% if True %}
+          <div class="d-flex gap-2 w-50">
+            {% comment %} <label for="clinic">Clinic</label> {% endcomment %}
+            <select name="clinic" id="clinic" class="form-control">
+            </select>
+          </div>
+
+        {% else %}
+          <input type="hidden"  name="clinic" id="clinic" value="0" />
+        
+        {% endif %}
+
+        <div class="d-flex gap-2 w-50">
+            {% comment %} <label for="clinic">Clinic</label> {% endcomment %}
+            <select name="doctor" id="doctor" class="form-control">
+            </select>
+          </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div id="calendar"></div>
+
+
+<!-- Modal -->
+<!-- Modal -->
+<div class="modal fade" id="slotModal" tabindex="-1" aria-labelledby="slotModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content w-100">
+      <div class="modal-header p-4">
+        <h5 class="modal-title" id="slotModalLabel">Check Slot Availability</h5>
+      </div>
+
+      <div class="modal-body">
+      
+        <p>Note: Continue to appointment page or click on close.</p>
+      </div>
+
+      <div class="modal-footer d-flex justify-content-center gap-2">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="confirmSlot" class="btn btn-info">Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+
+{% block page_js %}
+{{ block.super }}
+  
+{% comment %} <script src="{% static 'vendor/libs/fullcalendar/index.global.min.js' %}"></script> {% endcomment %}
+<script src="{% static 'vendor/libs/@fullcalendar/core/index.global.min.js' %}"></script>
+<script src="{% static 'vendor/libs/@fullcalendar/daygrid/index.global.min.js' %}"></script>
+<script src="{% static 'vendor/libs/@fullcalendar/timegrid/index.global.min.js' %}"></script>
+<script src="{% static 'vendor/libs/@fullcalendar/interaction/index.global.min.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{% comment %} static  {% endcomment %}
+<script>
+
+    $(document).ready(()=>{
+        let GET_BASE_URL = "{{ BASE_URL }}";
+
+       $('#clinic').select2({
+            placeholder : 'Choose Clinic' ,
+            width: '100%' ,
+            dropdownParent : $('#appointmentcalendercard') 
+        })
+        
+        $('#doctor').select2({
+            placeholder : 'Choose Doctor' ,
+            width: '100%' ,
+            dropdownParent : $('#appointmentcalendercard') 
+        })
+        
+        const fetchDoctors = (getclinicid) =>{
+            $.ajax({
+                url : `${GET_BASE_URL}/api/v1/doctors` ,
+                type : "GET" ,
+                data : { clinicid: getclinicid  } ,
+                success : (data) =>{
+
+                  $('#doctor').empty();
+
+                      $('#doctor').append(
+                            new Option("Select Doctor", 0 , false, false)
+                      )
+                    data.forEach((item)=>{
+                     // console.log("get", item)
+                        $('#doctor').append(
+                            new Option(`${item.first_name} ${item.last_name}`, item.id, false, false)
+                        )
+                    })
+
+                }
+            })
+        }
+
+
+        const fetchClinic = () =>{
+
+            $.ajax({
+                url : `${GET_BASE_URL}/api/v1/clinics` ,
+                type : "GET" ,
+                success : (data) =>{
+                    //console.log(data)
+                  
+                  $('#clinic').empty();
+
+                  // Default option add karo
+                  $('#clinic').append(
+                      new Option("Select Clinic", "", false, false)
+                  );
+
+                    data.forEach((item)=>{
+                        $('#clinic').append(
+                            new Option(item.name, item.id, false, false)
+                        )
+                    })
+                    // $('#clinic').trigger('change')
+
+                }
+            })
+
+            $(document).find('#clinic').on('change' , (e)=>{
+                let getid =  $(e.target).val()
+                fetchDoctors(getid)
+
+            })
+        }
+
+
+        fetchClinic()
+    })
+</script>
+
+
+<script src="{% static "custom/calender.js" %}?v=1.1"></script>
+
+
+{% endblock  %}
