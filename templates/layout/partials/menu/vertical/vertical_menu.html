@@ -81,15 +81,15 @@
           </a>
           <ul class="menu-sub">
 
-            {% comment %} <li class="menu-item {% if '/patients/' in request.path %}active{% endif %}">
-              <a  href="{% url 'patient_add'  %}" class="menu-link">
-                <div class="text-truncate" data-i18n="Without navbar">Add Patient</div>
-              </a>
-            </li> {% endcomment %}
-
             <li class="menu-item {% if '/patients/' in request.path %}active{% endif %}">
               <a  href="{% url 'view_patients'  %}" class="menu-link">
                 <div class="text-truncate" data-i18n="Without navbar">View Patients</div>
+              </a>
+            </li>
+            
+            <li class="menu-item {% if '/add-appointment' in request.path %}active{% endif %}">
+              <a  href="{% url 'add_appointment'  %}" class="menu-link">
+                <div class="text-truncate" data-i18n="Without navbar">Add Appointement</div>
               </a>
             </li>
 

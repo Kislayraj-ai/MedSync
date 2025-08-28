@@ -1,4 +1,4 @@
-from .models import Clinic , DoctorProfile , UserRole , Roles
+from .models import Clinic , DoctorProfile , UserRole , Roles , ClinicTime
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from apps.patients.models import PatientProfile
@@ -59,3 +59,8 @@ class PatientSerializer(serializers.ModelSerializer):
                 "lastname",
                 "doctorfullname",
         ]
+
+class ClinicTimeSlotsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClinicTime
+        fields =  '__all__'

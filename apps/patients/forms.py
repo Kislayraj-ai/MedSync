@@ -19,7 +19,7 @@ class PatientProfileForm(forms.ModelForm):
 
     class Meta :
         model =  PatientProfile
-        exclude = ['patient' , 'doctor' , 'p_age']
+        exclude = ['patient'  , 'p_age']
         widgets = {
             "dob": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             # "doctor": forms.Select(attrs={"class": "form-control"}),

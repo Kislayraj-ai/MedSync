@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
+from django_mysql.models import EnumField
 # Create your models here.
 
 class PatientProfile(models.Model):
@@ -18,14 +19,14 @@ class PatientProfile(models.Model):
 
     # main info --
     patient =  models.ForeignKey(User , on_delete=models.CASCADE , related_name="patient_user")
-    doctor =  models.ForeignKey(User , on_delete=models.CASCADE , related_name="patients_doctor")
+    # doctor =  models.ForeignKey(User , on_delete=models.CASCADE , related_name="patients_doctor")
     
 
     registration_datetime = models.DateTimeField(auto_now_add=True)
     
     # basic info ---
     healthcare_number = models.CharField(max_length=50, unique=True)  # eg: 23
-    sex = models.CharField(
+    sex = models.CharField(     
         max_length=10,
         choices=SexChoices.choices ,
         default=SexChoices.OTHER,
@@ -91,3 +92,34 @@ class PatientProfile(models.Model):
     #             calculated_age -= 1
     #         self.age = calculated_age
     #     super().save(*args, **kwargs)
+
+
+class Apointment(models.Model):
+
+    STATUS_CHOICES = (
+        ("0", "Pending"),
+        ("1", "Paid"),
+        ("2", "Partial"),
+    )
+
+    ACTIVE_STATUS_CHOICES = (
+        ("0", "Active"),
+        ("1", "Cancel"),
+        ("2", "Completed"),
+        ("3", "Pending"),
+    )
+
+
+    doctor  =  models.ForeignKey(User , on_delete=models.CASCADE , related_name="appointment_doctor")
+    patient =  models.ForeignKey(PatientProfile , on_delete=models.CASCADE , related_name="appointment_patient")
+    appdate = models.DateField(null=False)
+    apptime =  models.TimeField(null=False)
+    status = EnumField(
+        choices=STATUS_CHOICES ,
+        default="0",
+    )
+    is_active =  EnumField(
+        choices=ACTIVE_STATUS_CHOICES ,
+        default="0",
+    )
+    created_at =  models.DateTimeField(auto_now_add=True)
