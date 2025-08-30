@@ -1,7 +1,7 @@
 from .models import Clinic , DoctorProfile , UserRole , Roles , ClinicTime
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from apps.patients.models import PatientProfile
+from apps.patients.models import PatientProfile , Apointment
 from django.contrib.auth.models import User
 
 class ClinicSerializer(serializers.ModelSerializer):
@@ -36,6 +36,14 @@ class DoctorSerializer(serializers.ModelSerializer):
         model = User
         fields = ["id", "username", "email", "first_name", "last_name", "roles", "doctor_profile"]
 
+
+## for the patient
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    class Meta :
+        model =  Apointment
+        fields = '__all__'
+
 class PatientSerializer(serializers.ModelSerializer):
     userid = serializers.CharField(source="patient.id", read_only=True)
     username = serializers.CharField(source="patient.username", read_only=True)
@@ -43,10 +51,12 @@ class PatientSerializer(serializers.ModelSerializer):
     lastname = serializers.CharField(source="patient.last_name", read_only=True)
     email = serializers.CharField(source="patient.email", read_only=True)
 
-    doctorfullname =  serializers.SerializerMethodField()
+    # doctorfullname =  serializers.SerializerMethodField()
 
-    def get_doctorfullname(self, obj):
-        return f"{obj.doctor.first_name} {obj.doctor.last_name}"
+    # def get_doctorfullname(self, obj):
+    #     return f"{obj.doctor.first_name} {obj.doctor.last_name}"
+
+    appointment_patient =  AppointmentSerializer(many=True , read_only=True)
     
     class Meta :
         model = PatientProfile
@@ -57,7 +67,8 @@ class PatientSerializer(serializers.ModelSerializer):
                 "email",
                 "firstname",
                 "lastname",
-                "doctorfullname",
+                # "doctorfullname",
+                "appointment_patient"
         ]
 
 class ClinicTimeSlotsSerializer(serializers.ModelSerializer):

@@ -25,7 +25,7 @@
               <!-- Header -->
               <div class="d-flex align-items-center justify-content-between mb-4">
                   <h3 class="section-title mb-0">{{ page_title }}</h3>
-                  <a href="{% url 'view_patients'  %}" class="btn btn-outline-secondary">View Patient</a>
+                  <a href="{% url 'add_appointment'  %}" class="btn btn-outline-secondary">Appointment Calendar</a>
               </div>
 
               
@@ -185,15 +185,17 @@
 
                   $('#doctor').empty();
 
-                      $('#doctor').append(
-                            new Option("Select Doctor", 0 , false, false)
-                      )
-                      data.forEach((item)=>{
-                     // console.log("get", item)
-                        $('#doctor').append(
-                            new Option(`${item.first_name} ${item.last_name}`, item.id, false, false)
-                        )
-                    })
+                     // $('#doctor').append(
+                     //       new Option("Select Doctor", 0 , false, false)
+                    //  )
+
+                    data.forEach((item) => {
+                        if (parseInt(doctorid) === item.id) {
+                            $('#doctor').append(
+                                new Option(`${item.first_name} ${item.last_name}`, item.id, false, false)
+                            );
+                        }
+                    });
 
                     $('#doctor').trigger('change')
                 }

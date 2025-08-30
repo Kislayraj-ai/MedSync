@@ -25,7 +25,7 @@ class PatientProfile(models.Model):
     registration_datetime = models.DateTimeField(auto_now_add=True)
     
     # basic info ---
-    healthcare_number = models.CharField(max_length=50, unique=True)  # eg: 23
+    healthcare_number = models.CharField(max_length=50, unique=True)
     sex = models.CharField(     
         max_length=10,
         choices=SexChoices.choices ,
