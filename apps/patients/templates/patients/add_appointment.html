@@ -11,6 +11,52 @@
 
 
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+  <style>
+  /* Ensure event elements position children correctly */
+  .fc .fc-timegrid-event,
+  .fc .fc-daygrid-event {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Nice, compact edit button inside event */
+  .fc-event-main{
+    display:flex :
+    flex-direction :column;
+  }
+  .fc-event-edit {
+    width: 1--%;%
+    {% comment %} position: absolute;
+    top: 4px;
+    right: 4px;
+    padding: 2px 8px; {% endcomment %}
+    font-size: 11px;
+    line-height: 1.2;
+    border-radius: 6px;
+    border: 0;
+    background: #f6f6f6ff; /* orange */
+    color: #2c2c2cff;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  }
+
+  /* Optional: make short events a bit taller for button comfort */
+  .fc .fc-timegrid .fc-v-event { min-height: 34px; }
+  .fc-event-edit, .fc-event-cancel {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #fff;  /* white for visibility on colored events */
+}
+
+{% comment %} .fc-event-edit:hover { color: #ffd43b; }   /* yellow for edit hover */
+.fc-event-cancel:hover { color: #ff6b6b; } /* red for cancel hover */ {% endcomment %}
+
+
+</style>
+
 {% endblock vendor_css %}
 
 {% block content %}
@@ -73,7 +119,11 @@
 
 {% block page_js %}
 {{ block.super }}
-  
+
+<script>
+   let GET_BASE_URL = "{{ BASE_URL }}";
+</script>
+
 {% comment %} <script src="{% static 'vendor/libs/fullcalendar/index.global.min.js' %}"></script> {% endcomment %}
 <script src="{% static 'vendor/libs/@fullcalendar/core/index.global.min.js' %}"></script>
 <script src="{% static 'vendor/libs/@fullcalendar/daygrid/index.global.min.js' %}"></script>
@@ -84,7 +134,7 @@
 <script>
 
     $(document).ready(()=>{
-        let GET_BASE_URL = "{{ BASE_URL }}";
+
 
        $('#clinic').select2({
             placeholder : 'Choose Clinic' ,
@@ -160,7 +210,7 @@
 </script>
 
 
-<script src="{% static "custom/calender.js" %}?v=1.1"></script>
+<script src="{% static "custom/calender.js" %}?v=1.4"></script>
 
 
 {% endblock  %}

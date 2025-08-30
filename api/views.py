@@ -36,8 +36,27 @@ class PatientListView(generics.ListAPIView):
     queryset = PatientProfile.objects.all()
     serializer_class =  PatientSerializer
 
-    # def list(self, request, *args, **kwargs):
-    #     return super().list(request, *args, **kwargs)
+    def list(self, request, *args, **kwargs):
+        start = request.GET.get("start")
+        end = request.GET.get("end")
+        qs =  self.get_queryset()
+
+        # print(start)
+
+
+        if start and end:
+            start_dt = datetime.fromisoformat(start)
+            end_dt = datetime.fromisoformat(end)
+            print("showin the real data time" , start_dt.date(), end_dt.date())
+            qs = self.get_queryset().filter(
+                appointment_patient__appdate__range=[start_dt.date(), end_dt.date()]
+            ).distinct()
+        else:
+            qs = self.get_queryset()
+
+        serializer  =  self.get_serializer(qs,  many=True)
+
+        return Response(serializer.data)
 
 
 class ClinicAvailableTimeSlots(generics.ListAPIView):
@@ -48,11 +67,15 @@ class ClinicAvailableTimeSlots(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         clinicid =  request.GET.get('clinicid')
         date =  request.GET.get('date')
-        time =  request.GET.get('time')
+        apptime =  request.GET.get('apptime')
         doctor = request.GET.get('doctorid')
 
         date_obj =  datetime.strptime(date , '%Y-%m-%d').date()
         getdayint =  date_obj.weekday()
+
+        apptime_obj =  None
+        if apptime:
+            apptime_obj =  datetime.strptime(apptime , '%H:%M')
 
         if not clinicid or not date :
             return Response({
@@ -104,9 +127,6 @@ class ClinicAvailableTimeSlots(generics.ListAPIView):
             slots.append(current.strftime("%H:%M"))
             current += slotduration
 
-        ## get all the doctors for the particular clinic
-        # doctor_clinic =  DoctorProfile.objects.filter(clinic_id=clinicid).values_list('id' , flat=True)
-        # doctor_clinic = list(doctor_clinic)
 
         booked =  Apointment.objects.filter(
             doctor = getuser ,
@@ -117,6 +137,11 @@ class ClinicAvailableTimeSlots(generics.ListAPIView):
         # if s not in booked
         available_slots = [s for s in slots if s not in booked ]
 
+        # print("Getheap available sltos " , apptime_obj.strftime("%H:%M"))
+        if apptime_obj is not None :
+            available_slots.append(apptime_obj.strftime("%H:%M"))
+
+        available_slots.sort()
 
         return Response({
             'status' : status.HTTP_200_OK ,

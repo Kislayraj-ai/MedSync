@@ -25,7 +25,7 @@
               <!-- Header -->
               <div class="d-flex align-items-center justify-content-between mb-4">
                   <h3 class="section-title mb-0">{{ page_title }}</h3>
-                  <a href="{% url 'view_patients'  %}" class="btn btn-outline-secondary">View Patient</a>
+                  <a href="{% url 'add_appointment'  %}" class="btn btn-outline-secondary">Appointment Calendar</a>
               </div>
 
 
@@ -76,6 +76,21 @@
 
 
                 <input type="hidden" name="user_id" value="{{ paientdata.id }}">
+                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+
+                      <div class="col-md-6">
+                        <label for="appdate">Appointment Date</label>
+                        {% comment %} <select name="appdate" id="appdate" class='form-control'>
+                        </select> {% endcomment %}
+                        <input type="text" name="appdate" id="appdate" class='form-control' value="{{ appointment.appdate|date:"Y-m-d" }}" required readonly />
+                      </div>
+
+                    <div class="col-md-6">
+                      <label for="apptime">Appointment Time</label>
+                      <select name="apptime" id="apptime" class='form-control'>
+                      </select>
+                    </div>
+
 
 
                   {% for field in user_form %}
@@ -144,39 +159,87 @@
 
 
   $(document).ready(()=>{
-        let GET_BASE_URL = "{{ BASE_URL }}";
-        let doctorid=  "{{patientprofile.doctor.id}}"
+        let GET_BASE_URL = "{{ BASE_URL }}";;
+        let doctorid=  "{{appointment.doctor.id}}";
+        let appdate=  "{{ appointment.appdate|date:"Y-m-d"  }}";
+        let apptime = "{{ appointment.apptime|time:"H:i"  }}" ;
+        let clinicid=  "{{appointment.doctor.doctor_profile.first.clinic_id}}" ;
+        // console.log("getclinicid " , clinicid)
+        {% comment %} console.log("Getappdate" , appdate ) {% endcomment %}
+      
+
+        $('#apptime').select2({
+            placeholder : 'Choose app time' ,
+            width: '100%' ,
+        })
 
         $('#doctor').select2({
             placeholder : 'Choose Doctor' ,
             width: '100%' ,
         })
 
-        const fetchClinic = () =>{
+        const fetchDoctor = () =>{
 
             $.ajax({
                 url : `${GET_BASE_URL}/api/v1/doctors` ,
                 type : "GET" ,
+                data : { clinicid: parseInt(clinicid)  } ,
                 success : (data) =>{
 
                   $('#doctor').empty();
 
-                      $('#doctor').append(
-                            new Option("Select Doctor", 0 , false, false)
-                      )
-                    data.forEach((item)=>{
-                        $('#doctor').append(
-                            new Option(`${item.first_name} ${item.last_name}`, item.id, false, false)
-                        )
-                    })
-                    console.log("GEtdata " , doctorid)
+                    //  $('#doctor').append(
+                    //       new Option("Select Doctor", 0 , false, false)
+                    //  )
+
+                    data.forEach((item) => {
+                        if (parseInt(doctorid) === item.id) {
+                            $('#doctor').append(
+                                new Option(`${item.first_name} ${item.last_name}`, item.id, false, false)
+                            );
+                        }
+                    });
+
+                    
+                   // console.log("GEtdata " , doctorid)
                     $('#doctor').val(parseInt(doctorid)).trigger('change')
                     // $('#doctor').select2()
                 }
             })
         }
 
-      fetchClinic()
+        
+        const fetchAvailSlots = ()=>{
+
+          $.ajax({
+                url : `${GET_BASE_URL}/api/v1/get-available-clinic-slots` ,
+                type : "GET" ,
+                data :{
+                  clinicid , doctorid ,
+                  date : appdate ,
+                  // time: seletedtime
+                  apptime
+                },
+                success : (response)=>{
+                  //console.log("Get result " , response)
+                      $('#apptime').empty();
+                      $('#apptime').append(
+                            new Option("Select time", 0 , false, false)
+                      )
+                      response.available.forEach((item)=>{
+                        $('#apptime').append(
+                            new Option(item , item, false, false)
+                        )
+                    })
+
+                    $('#apptime').val(apptime).trigger('change')
+                }
+          })
+        }
+        
+        fetchAvailSlots()
+
+      fetchDoctor()
 
     })
 
