@@ -88,6 +88,18 @@
 
   </div>
 
+                  {% for msg in messages %}
+                {% if msg.tags == "success" %}
+                    <div class="alert alert-success">
+                {% elif msg.tags == "error" %}
+                    <div class="alert alert-danger">
+                {% else %}
+                    <div class="alert alert-info">
+                {% endif %}
+                    {{ msg }}
+                    </div>
+                {% endfor %}
+                
   <div id="calendar"></div>
 
 
@@ -210,7 +222,7 @@
 </script>
 
 
-<script src="{% static "custom/calender.js" %}?v=1.4"></script>
+<script src="{% static "custom/calender.js" %}?v=1.5"></script>
 
 
 {% endblock  %}

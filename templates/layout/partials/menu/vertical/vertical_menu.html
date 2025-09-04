@@ -81,11 +81,11 @@
           </a>
           <ul class="menu-sub">
 
-            <li class="menu-item {% if '/view-patients/' in request.path %}active{% endif %}">
+            {% comment %} <li class="menu-item {% if '/view-patients/' in request.path %}active{% endif %}">
               <a  href="{% url 'view_patients'  %}" class="menu-link">
                 <div class="text-truncate" data-i18n="Without navbar">View Patients</div>
               </a>
-            </li>
+            </li> {% endcomment %}
             
             <li class="menu-item {% if '/add-appointment' in request.path %}active{% endif %}">
               <a  href="{% url 'add_appointment'  %}" class="menu-link">
@@ -93,6 +93,19 @@
               </a>
             </li>
 
+            <li class="menu-item {% if '/add-appointment' in request.path %}active{% endif %}">
+              <a  href="{% url 'add_appointment'  %}" class="menu-link">
+                <div class="text-truncate" data-i18n="Without navbar">View Appointement</div>
+              </a>
+            </li>
+
+            <li class="menu-item {% if '/complete-payment' in request.path %}active{% endif %}">
+              <a  href="{% url 'complete_payment'  %}" class="menu-link">
+                <div class="text-truncate" data-i18n="Without navbar">Complete Payment</div>
+              </a>
+            </li>
+
+            
         </li>
       </ul>
     </li>

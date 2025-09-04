@@ -1,7 +1,7 @@
 from .models import Clinic , DoctorProfile , UserRole , Roles , ClinicTime
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from apps.patients.models import PatientProfile , Apointment
+from apps.patients.models import PatientProfile , Apointment , PaymentHistory
 from django.contrib.auth.models import User
 
 class ClinicSerializer(serializers.ModelSerializer):
@@ -39,10 +39,22 @@ class DoctorSerializer(serializers.ModelSerializer):
 
 ## for the patient
 
+# serializers.py
+class PaymentHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentHistory
+        fields = ['id', 'amount', 'appDate', 'appTime', 'status', 'appointment_id']
+
+
 class AppointmentSerializer(serializers.ModelSerializer):
-    class Meta :
-        model =  Apointment
-        fields = '__all__'
+    payment_appointment = PaymentHistorySerializer(read_only=True)
+
+    class Meta:
+        model = Apointment
+        fields = ['id', 'appdate', 'apptime', 'status',
+                  'is_active', 'created_at', 'doctor_id',
+                  'patient_id', 'payment_appointment']
+
 
 class PatientSerializer(serializers.ModelSerializer):
     userid = serializers.CharField(source="patient.id", read_only=True)

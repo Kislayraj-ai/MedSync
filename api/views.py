@@ -1,12 +1,17 @@
 from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
 from apps.clinics.models import Clinic , User , ClinicTime , DoctorProfile
-from apps.clinics.serializesrs import ClinicSerializer , DoctorSerializer ,PatientSerializer , ClinicTimeSlotsSerializer
-from rest_framework import generics
+from apps.clinics.serializesrs import ClinicSerializer , DoctorSerializer ,PatientSerializer , ClinicTimeSlotsSerializer , AppointmentSerializer
+from rest_framework import generics , status
 from apps.patients.models  import PatientProfile, Apointment
 from rest_framework.response import Response
-from rest_framework import status
 from datetime import timedelta , datetime
+from rest_framework.views import APIView
+from django.conf import settings
+from requests.auth import HTTPBasicAuth
+import requests
+import json
+import uuid
 # Create your views here.
 
 
@@ -41,9 +46,6 @@ class PatientListView(generics.ListAPIView):
         end = request.GET.get("end")
         qs =  self.get_queryset()
 
-        # print(start)
-
-
         if start and end:
             start_dt = datetime.fromisoformat(start)
             end_dt = datetime.fromisoformat(end)
@@ -60,8 +62,7 @@ class PatientListView(generics.ListAPIView):
 
 
 class ClinicAvailableTimeSlots(generics.ListAPIView):
-    # queryset =  ClinicTime.objects.all()
-    # serializer_class =  ClinicTimeSlotsSerializer
+
     serializer_class = None  
 
     def list(self, request, *args, **kwargs):
@@ -130,11 +131,12 @@ class ClinicAvailableTimeSlots(generics.ListAPIView):
 
         booked =  Apointment.objects.filter(
             doctor = getuser ,
-            appdate = date_obj
+            appdate = date_obj ,
+            status__in = [0 , 3]
         ).values_list('apptime' , flat=True)
 
         booked =  [t.strftime("%H:%M") for t in booked]
-        # if s not in booked
+
         available_slots = [s for s in slots if s not in booked ]
 
         # print("Getheap available sltos " , apptime_obj.strftime("%H:%M"))
@@ -151,3 +153,104 @@ class ClinicAvailableTimeSlots(generics.ListAPIView):
             # 'doctor_clinic' : getuser.id,
             'booked' : booked 
         })
+    
+
+class GetAppointmentView(generics.ListAPIView):
+    # queryset = Apointment.objects.all()
+    serializer_class = AppointmentSerializer
+
+    def get_queryset(self):
+        queryset = Apointment.objects.all()
+        appoinment = self.request.GET.get('appointment')
+        if int(appoinment) > 0:
+            queryset =  queryset.filter(id=appoinment)
+        
+        return queryset
+    
+class CancelAppointmentView(generics.UpdateAPIView):
+    queryset =  Apointment.objects.all()
+    serializer_class =  AppointmentSerializer
+    lookup_field = 'id'
+    
+
+    def patch(self, request, *args, **kwargs):
+        appointment_id = request.GET.get('id')
+        # print("Getsdkpds " , appointment_id)
+        if not appointment_id:
+            return Response({"error": "Appointment ID required"}, status=400)
+
+        try:
+            appointment = Apointment.objects.get(id=appointment_id)
+        except Apointment.DoesNotExist:
+            return Response({"error": "Appointment not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = self.get_serializer(appointment, data=request.data, partial=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK  )
+
+
+# paypal integration
+
+class CreatePaypalOrderView(APIView):
+    def post(self, request):
+        amount = request.data.get("amount")
+        appointment = request.data.get("appointment")
+
+        if not amount or not appointment:
+            return Response({"error": "Amount and appointment are required"}, status=400)
+        
+        # print(f"IDHAR AMOUt {amount} {appointment} ")
+
+        token_res = requests.post(
+            f"{settings.PAYPAL_BASE_URL}/v1/oauth2/token",
+            auth=HTTPBasicAuth(settings.PAYPAL_CLIENT_ID, settings.PAYPAL_CLIENT_SECRET),
+            data={"grant_type": "client_credentials"}
+        )
+
+        access_token = token_res.json().get("access_token")
+        # access_token = ''
+
+        payload = {
+                "intent": "CAPTURE",
+                "purchase_units": [{
+                    "amount": {
+                        "currency_code": "USD", "value": str(amount) ,
+
+                        
+                        },
+                        "custom_id": str(appointment)
+                }],
+                "application_context": {
+                    "return_url": f"{settings.BASE_URL}/patients/paypal/success-payment/",
+                    "cancel_url": f"{settings.BASE_URL}/patients/paypal/cancel-payment/"
+                }
+            }
+
+
+        headers = {
+                "Content-Type": "application/json", 
+                "PayPal-Request-Id": str(uuid.uuid4()) ,
+                "Authorization": f"Bearer {access_token}"}
+        
+        res = requests.post(
+            f"{settings.PAYPAL_BASE_URL}/v2/checkout/orders",
+            headers=headers,
+            # json=payload
+            json=payload
+        )
+
+        print("===== RAW REQUEST PAYLOAD =====")
+        print(json.dumps(payload, indent=4))
+        print("===== RAW RESPONSE =====")
+        print(res.status_code, res.text)
+
+
+
+        approval_url = None
+        for link in res.json().get("links", []):
+            if link["rel"] == "approve":
+                approval_url = link["href"]
+
+        return Response({"approval_url": approval_url})

@@ -25,7 +25,7 @@
         // ],
         events : function(fetchInfo, successCallback, failureCallback) {
 
-          console.log("Fetchinfo " , fetchInfo) ;
+        //  console.log("Fetchinfo " , fetchInfo) ;
 
           $.ajax({
             url : `${GET_BASE_URL}/api/v1/patients` ,
@@ -43,6 +43,13 @@
               patient.appointment_patient.forEach(appt => {
             
                 let start = `${appt.appdate}T${appt.apptime}`;
+
+                let statusColors = {
+                    "0": "green",  
+                    "1": "red",
+                    "2": "darkgreen",
+                    "3": "orange"
+                };
         
                 let endTime = new Date(start);
                 endTime.setMinutes(endTime.getMinutes() + 30);
@@ -50,7 +57,7 @@
                   title: patient.firstname ,
                   start: start,
                   end: endTime.toISOString(),
-                  backgroundColor: appt.status === "0" ? "green" : "lightblue",
+                  backgroundColor:  statusColors[appt.status] || "lightblue",
                   extendedProps: {
                     appointment : appt.id ,
                     patientid : patient.patient ,
@@ -61,111 +68,193 @@
               });
             });
 
-            // console.log("Getevents " , events)
+
             successCallback(events);
           }
           })
         },
 
         eventDidMount: function(info) {
-          // make event container a clipping context
           info.el.style.position = 'relative';
           info.el.style.overflow = 'hidden';
 
-          let getAppointmentId = info.event.extendedProps.appointment;
-
-          const main = info.el.querySelector('.fc-event-main');
-          if (main) main.style.paddingRight = '56px';
-
-          // icon wrapper
-          const wrapper = document.createElement('div');
-          wrapper.style.gap = '0.2rem';
-
-          // edit button
-          const editBtn = document.createElement('button');
-          editBtn.className = 'fc-event-edit';
-          editBtn.title = 'Edit'
-          const editIcon = document.createElement('i');
-          editIcon.className = 'bx bx-edit-alt';
-          editBtn.appendChild(editIcon);
-          editBtn.setAttribute('data-id', info.event.id);
-
+          let currentDate =  new Date();
+          let getEventDate =  info.event.startStr
+          // console.log("curentdate " , new Date(getEventDate).toISOString().slice(0 , 10), info)
           
 
-          editBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            // alert('Edit clicked for appointment ID: ' + getAppointmentId);
-            window.location.href = `/patients/edit-patient-appointment?appointment=${getAppointmentId}`
-          });
+            if(getEventDate >= currentDate.toISOString().slice(0 , 10))
+            {
 
-          // cancel button
-          const cancelBtn = document.createElement('button');
-          cancelBtn.className = 'fc-event-cancel';
-          cancelBtn.title = 'Cancel'
-          const cancelIcon = document.createElement('i');
-          cancelIcon.className = 'bx bx-undo';
-          cancelBtn.appendChild(cancelIcon);
-          cancelBtn.setAttribute('data-id', info.event.id);
 
-          cancelBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            alert('Cancel clicked for appointment ID: ' + getAppointmentId);
-          });
+            let getAppointmentId = info.event.extendedProps.appointment;
 
-          // add both to wrapper
-          wrapper.appendChild(editBtn);
-          wrapper.appendChild(cancelBtn);
+            const main = info.el.querySelector('.fc-event-main');
+            if (main) main.style.paddingRight = '56px';
 
-          // append wrapper to event
-          info.el.appendChild(wrapper);
+            const wrapper = document.createElement('div');
+            wrapper.style.gap = '0.2rem';
+
+            
+            // console.log( )
+            if ((parseInt(info.event.extendedProps.status) == 0 ) || parseInt(info.event.extendedProps.status) == 3  ){
+
+      
+            const editBtn = document.createElement('button');
+            editBtn.className = 'fc-event-edit';
+            editBtn.title = 'Edit'
+            const editIcon = document.createElement('i');
+            editIcon.className = 'bx bx-edit-alt';
+            editBtn.appendChild(editIcon);
+            editBtn.setAttribute('data-id', info.event.id);
+
+            
+
+            editBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              window.location.href = `/patients/edit-patient-appointment?appointment=${getAppointmentId}`
+            });
+
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'fc-event-cancel';
+            cancelBtn.title = 'Cancel'
+            const cancelIcon = document.createElement('i');
+            cancelIcon.className = 'bx bx-undo';
+            cancelBtn.appendChild(cancelIcon);
+            cancelBtn.setAttribute('data-id', info.event.id);
+
+            cancelBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              $.ajax({
+                url : `${GET_BASE_URL}/api/v1/get-appointment-status` ,
+                tpe : "GET" ,
+                data : {
+                  appointment : getAppointmentId
+                } ,
+                success : (data) =>{
+                  // console.log("onappointment" , data)
+
+                  let getdata =  data[0].status
+
+                  if(parseInt(getdata) != 0){
+                    Swal.fire({
+                      title : "Error" ,
+                      text :" Oops ! You are not allowed to cancel" ,
+                      icon :'error' ,
+                      confirmButtonText: 'OK'
+                    })
+                  }else{
+                        Swal.fire({
+                          title: 'Confirm Cancellation',
+                          text: "Do you want to continue canceling this appointment?",
+                          icon: 'warning',
+                          showCancelButton: true,
+                          confirmButtonText: 'Yes, Continue',
+                          cancelButtonText: 'No, Cancel'
+                      }).then((result) => {
+                          if(result.isConfirmed){
+                              $.ajax({
+                                  url:  `${GET_BASE_URL}/api/v1/appointment/cancel/?id=${getAppointmentId}` ,
+                                  type: 'PATCH',
+                                  data: {
+                                      // id : getAppointmentId ,
+                                      status : "1"
+                                  },
+                                  success: function(response){
+                                      Swal.fire({
+                                          title: 'Success',
+                                          text: 'Appointment has been cancelled successfully!',
+                                          icon: 'success',
+                                          confirmButtonText: 'OK'
+                                      }).then(() => {
+                                          setTimeout(() => {
+                                            location.reload();
+                                          }, 1200);
+                                      });
+                                  },
+                                  error: function(xhr){
+                                      Swal.fire({
+                                          title: 'Error',
+                                          text: 'Failed to cancel appointment. Please try again.',
+                                          icon: 'error',
+                                          confirmButtonText: 'OK'
+                                      });
+                                  }
+                              });
+                          }
+                      });
+
+                  }
+
+
+                }
+              })
+            });
+
+            // add both to wrapper
+            wrapper.appendChild(editBtn);
+            wrapper.appendChild(cancelBtn);
+
+            // append wrapper to event
+              info.el.appendChild(wrapper);
+            }
+          } 
         },
 
         dateClick: (info)=>{
-            // console.log("getinfof" , info)
-            let clinicID =  $(document).find('#clinic').val();
-            let doctorId =  $(document).find('#doctor').val()
-            $('#slotModal').data('dateslot' , info.dateStr).modal('show');
-            $('#slotModal').data('clinic' , clinicID);
-            $('#slotModal').data('doctor' , doctorId)
+          // console.log("getinfof" , info)
+
+          let currentDate =  new Date().toISOString().slice(0,10);
+          let getEventDate =  new Date(info.dateStr).toISOString().slice(0,10)
+          
+          if(getEventDate >= currentDate){
+              let clinicID =  $(document).find('#clinic').val();
+              let doctorId =  $(document).find('#doctor').val()
+              $('#slotModal').data('dateslot' , info.dateStr).modal('show');
+              $('#slotModal').data('clinic' , clinicID);
+              $('#slotModal').data('doctor' , doctorId)
 
 
-            $('#slotModal').on('click' , '#confirmSlot' , (e)=>{
-                let date = $("#slotModal").data("dateslot");    
+              $('#slotModal').on('click' , '#confirmSlot' , (e)=>{
+                  let date = $("#slotModal").data("dateslot");    
 
-                let clinicid =  $("#slotModal").data("clinic");
-                let doctor =  $("#slotModal").data("doctor");
+                  let clinicid =  $("#slotModal").data("clinic");
+                  let doctor =  $("#slotModal").data("doctor");
 
-                if(!clinicid){
-                  $('#slotModal').modal('hide');
+                  if(!clinicid){
+                    $('#slotModal').modal('hide');
+                      Swal.fire({
+                        title: 'Error!',
+                        text: 'Please choose clinic',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                      });
+                      return
+                  }
+
+
+                  if (!doctor){
+                    $('#slotModal').modal('hide');
                     Swal.fire({
-                      title: 'Error!',
-                      text: 'Please choose clinic',
-                      icon: 'error',
-                      confirmButtonText: 'OK'
-                    });
+                        title: 'Error!',
+                        text: 'Please choose doctor',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    })
+
                     return
-                }
+                  }
+
+                  let getdate =  date.split('T')[0]
+                  let gettime =  date.split('T')[1].slice(0,5)
 
 
-                if (!doctor){
-                  $('#slotModal').modal('hide');
-                  Swal.fire({
-                      title: 'Error!',
-                      text: 'Please choose doctor',
-                      icon: 'error',
-                      confirmButtonText: 'OK'
-                  })
+                  window.location.href = `/patients/add-patient-appointment/?date=${getdate}&time=${gettime}&clinicid=${clinicid}&doctor=${doctor}`
 
-                  return
-                }
-
-                let getdate =  date.split('T')[0]
-                let gettime =  date.split('T')[1].slice(0,5)
-
-
-                window.location.href = `/patients/add-patient?date=${getdate}&time=${gettime}&clinicid=${clinicid}&doctor=${doctor}`
-
-            });
+              });
+                        
+          }
         },
     });
 

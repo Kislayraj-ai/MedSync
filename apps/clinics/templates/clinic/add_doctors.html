@@ -53,37 +53,32 @@
 
                 <div class="row g-4">
 
-                <!-- Username -->
                 <div class="col-md-6">
                     <label for="username" class="form-label">Username</label>
                     <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
                 </div>
 
-                <!-- First Name -->
                 <div class="col-md-6">
                     <label for="first_name" class="form-label">First Name</label>
                     <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First name">
                 </div>
 
-                <!-- Last Name -->
                 <div class="col-md-6">
                     <label for="last_name" class="form-label">Last Name</label>
                     <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Last name">
                 </div>
 
-                <!-- Email -->
+
                 <div class="col-md-6">
                     <label for="email" class="form-label">Email</label>
                     <input type="email" class="form-control" id="email" name="email" placeholder="example@email.com" required>
                 </div>
 
-                <!-- Password -->
                 <div class="col-md-6">
                     <label for="password" class="form-label">Password</label>
                     <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
                 </div>
 
-                <!-- Role Dropdown -->
                 <div class="col-md-6">
                     <label for="role" class="form-label">Role</label>
                     <select class="form-select" id="role" name="role" required>
@@ -93,19 +88,18 @@
                     </select>
                 </div>
 
-                <!-- Specialization -->
                 <div class="col-md-6">
                     <label for="specialization" class="form-label">Specialization</label>
                     <input type="text" class="form-control" id="specialization" name="specialization" placeholder="e.g. Cardiologist">
                 </div>
 
-                <!-- Experience -->
+
                 <div class="col-md-6">
                     <label for="experience" class="form-label">Experience (Years)</label>
                     <input type="number" class="form-control" id="experience" name="experience" min="0" placeholder="5">
                 </div>
 
-                <!-- Fees -->
+
                 <div class="col-md-6">
                     <label for="fees" class="form-label">Fees</label>
                     <div class="input-group">
@@ -114,7 +108,6 @@
                     </div>
                 </div>
 
-                <!-- Clinic -->
                 <div class="col-md-6">
                     <label for="clinic" class="form-label">Clinic</label>
                     <select class="form-select" id="clinic" name="clinic">
@@ -155,7 +148,7 @@
     $(document).ready(()=>{
         let GET_BASE_URL = "{{ BASE_URL }}";
 
-     $('#clinic').select2({
+        $('#clinic').select2({
             placeholder : 'Choose Doctor' ,
             width: '100%' ,
         })
