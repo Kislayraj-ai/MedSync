@@ -49,7 +49,7 @@
 
                   {% comment %} for the image {% endcomment %}
                   <div class="col-md-10 text-center mb-4">
-                    <label for="profile_image" class="d-inline-block position-relative" style="cursor: pointer;">
+                    <label for="profile_img" class="d-inline-block position-relative" style="cursor: pointer;">
 
                         <!-- Circle Avatar -->
                         <div class="rounded-circle border d-flex align-items-center justify-content-center" 
@@ -58,14 +58,12 @@
                               alt="Profile" class="img-fluid" style="object-fit: cover; width: 100%; height: 100%;">
                         </div>
 
-                        <!-- Plus Sign Overlay -->
                         <div class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
                             style="width: 35px; height: 35px; font-size: 20px; border: 2px solid #fff;">
                           +
                         </div>
                     </label>
                     
-                    <!-- Hidden File Input -->
                     <input type="file" name="profile_img" id="profile_img" class="d-none" accept="image/*" 
                           onchange="previewProfileImage(event)">
                     <div class="form-text">Please upload image</div>
@@ -144,8 +142,6 @@
 
 {{block.super}}
 
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <script>
 
           function previewProfileImage(event) {
@@ -155,6 +151,12 @@
             }
             reader.readAsDataURL(event.target.files[0]);
           }
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
 
 
   $(document).ready(()=>{

@@ -2,13 +2,15 @@ from django.shortcuts import render , redirect , get_object_or_404
 from web_project  import TemplateLayout
 from django.views.generic import TemplateView
 from django.conf import settings
-from .models import PatientProfile , Apointment
+from .models import PatientProfile , Apointment , PaymentHistory
 from django.contrib.auth.models import User
 from datetime import date , datetime
 from django.contrib import messages
 from .forms import UserForm , PatientProfileForm
 from django.db import transaction
 from django.urls import reverse
+import requests
+import traceback
 
 # Create your views here.
 
@@ -72,6 +74,10 @@ class PatientAdd(TemplateView):
                             appdate_obj = datetime.strptime(appdate, "%Y-%m-%d").date()
                             apptime_obj = datetime.strptime(apptime, "%H:%M").time()
 
+                            ## get doctor
+                            docInfo =  User.objects.prefetch_related('doctor_profile').get(id=doctorid)
+                            doctor_profile = docInfo.doctor_profile.first()
+
                             app =  Apointment()
                             app.doctor_id =  doctorid
                             app.patient = profile
@@ -79,10 +85,19 @@ class PatientAdd(TemplateView):
                             app.apptime = apptime_obj
                             app.status =  0
                             app.is_active =  0
+
+                            # add patients here
+                            payment =  PaymentHistory()
+                            payment.patient = user
+                            payment.amount = doctor_profile.fees
+                            payment.appDate = appdate_obj
+                            payment.appTime = apptime_obj
+                            
                     
                             user.save()
                             profile.save()
                             app.save()
+                            payment.save()
 
                         messages.success(request, "Patient created successfully")
                         return redirect("add_appointment")
@@ -208,83 +223,99 @@ class AddAppointmentView(TemplateView):
         return context
     
 
-
- # def post(self, request , *args, **kwargs):
-    #         if request.method == "POST":
-    #             try:
-    #                 # Patient basic info
-    #                 profile_image = request.FILES.get("profile_image")
-    #                 first_name = request.POST.get("first_name")
-    #                 last_name = request.POST.get("last_name")
-    #                 email = request.POST.get("email")
-    #                 # phone = request.POST.get("phone")
-    #                 doctor = request.POST.get("doctor")
-    #                 healthcare_number = request.POST.get("healthcare_number")
-    #                 sex = request.POST.get("sex")
-    #                 dob = request.POST.get("dob")
-
-    #                 # Address
-    #                 street_address = request.POST.get("street_address")
-    #                 city = request.POST.get("city")
-    #                 state = request.POST.get("state")
-    #                 country = request.POST.get("country")
-    #                 postal_code = request.POST.get("postal_code")
-
-    #                 # Marital status
-    #                 marital_status = request.POST.get("marital_status")
-
-    #                 # Emergency contact
-    #                 emergency_first_name = request.POST.get("emergency_first_name")
-    #                 emergency_last_name = request.POST.get("emergency_last_name")
-    #                 emergency_relationship = request.POST.get("emergency_relationship")
-    #                 emergency_contact_number = request.POST.get("emergency_contact_number")
-
-    #                 # Insurance
-    #                 insurance_id = request.POST.get("insurance_id")
+class CompletePaymentView(TemplateView):
+    def get_context_data(self, **kwargs):
+        context = TemplateLayout.init(self , super().get_context_data(**kwargs))
+        context["BASE_URL"] = settings.BASE_URL 
+        context["page_title"] = 'Complete Payment' 
+        return context
 
 
-    #                 if not first_name or not last_name  or not dob or not country or not doctor :
-    #                     messages.warning(request , "Some required filed cannot be empty")
-    #                     return redirect('add_appointment')
+def get_paypal_access_token():
+    url = f"{settings.PAYPAL_BASE_URL}/v1/oauth2/token"
+    auth = (settings.PAYPAL_CLIENT_ID, settings.PAYPAL_CLIENT_SECRET)
+    headers = {"Accept": "application/json", "Accept-Language": "en_US"}
+    data = {"grant_type": "client_credentials"}
 
-    #                 user =  User()
-    #                 user.username =  first_name +" " + last_name
-    #                 user.first_name =  first_name
-    #                 user.last_name =  last_name
-    #                 user.email =  email
+    response = requests.post(url, headers=headers, data=data, auth=auth)
+    response.raise_for_status()
+    return response.json()["access_token"]
 
-    #                 user.save()
+class SuccessPaymentView(TemplateView):
+    template_name = "patients/success.html"
 
-    #                 # now the patient profile
-    #                 patientProfile = PatientProfile()
-    #                 patientProfile.profile_img = profile_image
+    def get_context_data(self, **kwargs):
+        context = TemplateLayout.init(self, super().get_context_data(**kwargs))
+        context["BASE_URL"] = settings.BASE_URL
+        context["page_title"] = "Success Payment"
+
+        token = self.request.GET.get("token")
+        payer_id = self.request.GET.get("PayerID")
+
+        print(f"YES HIT HUA IDHAR ======================== {token}")
+        import json
+
+        if token:
+            try:
+                capture_url = f"{settings.PAYPAL_BASE_URL}/v2/checkout/orders/{token}/capture"
+                headers = {"Content-Type": "application/json", "Authorization": f"Bearer {get_paypal_access_token()}"}
+                response = requests.post(capture_url, headers=headers)
+                order_data = response.json()
+
+                # print("===== RAW CAPTURE DATA =====")
+                # print(json.dumps(order_data, indent=4))
+
+                if order_data.get("status") == "COMPLETED":
+                    appointment_id = order_data["purchase_units"][0]["payments"]["captures"][0]["custom_id"]
+                    # print(f"Captured appointment {appointment_id}")
+
                     
-    #                 patientProfile.patient = user
-    #                 patientProfile.doctor =  User.objects.get(id=doctor)
-    #                 patientProfile.registration_datetime =  datetime.now().strftime("%Y-%m-%d")
-    #                 patientProfile.healthcare_number =  healthcare_number
-    #                 patientProfile.sex =  sex
-    #                 patientProfile.dob =  dob
+                    appointment_id =  int(appointment_id)
+                    appointment = Apointment.objects.get(id=int(appointment_id))
+                    payment = PaymentHistory.objects.get(appointment=appointment)
+                    payment.status = "1"
+                    payment.save()
 
-    #                 patientProfile.country =  country
-    #                 patientProfile.state =  state
-    #                 patientProfile.city =  city
-    #                 patientProfile.street_address =  street_address
-    #                 patientProfile.postal_code =  postal_code
+                    appointment.status = "1"
+                    appointment.save()
 
-    #                 patientProfile.marital_status =  marital_status
-    #                 patientProfile.emergency_first_name  = emergency_first_name
-    #                 patientProfile.emergency_last_name  = emergency_last_name
-    #                 patientProfile.emergency_relationship  = emergency_relationship
-    #                 patientProfile.emergency_contact_number  = emergency_contact_number
-    #                 patientProfile.insurance_id = insurance_id
+                    context["payment_success"] = True
+                    context["appointment_id"] = appointment_id
+                else:
+                    context["payment_success"] = False
+                    context["error"] = order_data
 
-    #                 patientProfile.save()
 
-    #                 ## save message to the server
-    #                 messages.success(request , 'Patient save successfully !!')
-    #                 return redirect('add_appointment')
-                
-    #             except Exception as e :
-    #                 messages.error(request , f"Error :- {e}")
-    #                 return redirect('add_appointment')
+            except Exception as e:
+                print(f"Error {e}")
+                print(traceback.format_exc())
+                context["payment_success"] = False
+                context["error"] = str(e)
+
+        return context
+
+
+class CancelPaymentView(TemplateView):
+    template_name = "patients/cancel.html"
+
+    def get_context_data(self, **kwargs):
+        context = TemplateLayout.init(self, super().get_context_data(**kwargs))
+        context["BASE_URL"] = settings.BASE_URL
+        context["page_title"] = "Cancel Payment"
+
+        appointment_id = self.request.GET.get("appointment_id")
+
+        if appointment_id:
+            try:
+                appointment = Apointment.objects.get(id=appointment_id)
+                PaymentHistory.objects.filter(
+                    patient=appointment.patient,
+                    appDate=appointment.appdate,
+                    appTime=appointment.apptime
+                ).update(status="3")  # Failed / Cancel
+                appointment.status = "3"  # Cancel
+                appointment.save()
+            except:
+                pass
+
+        return context

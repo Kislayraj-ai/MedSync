@@ -99,7 +99,8 @@ class Apointment(models.Model):
     STATUS_CHOICES = (
         ("0", "Pending"),
         ("1", "Paid"),
-        ("2", "Partial"),
+        ("2", "Partial Paid"),
+        ("3"  , "Failed")
     )
 
     ACTIVE_STATUS_CHOICES = (
@@ -123,3 +124,24 @@ class Apointment(models.Model):
         default="0",
     )
     created_at =  models.DateTimeField(auto_now_add=True)
+
+
+
+class PaymentHistory(models.Model):
+
+    PAYMENT_STATUS =  (
+        ("0"  , "Pending") ,
+        ("1"  ,  "Paid") ,
+        ("2", "Partial Paid"),
+        ("3"  , "Failed")
+    )
+
+    appointment = models.OneToOneField(Apointment , on_delete=models.CASCADE , related_name='payment_appointment')
+    amount =  models.DecimalField(decimal_places=2 , max_digits=5)
+    appDate = models.DateField(null=False)
+    appTime = models.TimeField(null=False)
+    status = EnumField(
+        choices= PAYMENT_STATUS ,
+        default= "0"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)

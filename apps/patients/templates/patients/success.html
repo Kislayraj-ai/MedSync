@@ -1,0 +1,54 @@
+{% extends layout_path %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+  {% if payment_success %}
+    {% trans "Success" %}
+  {% else %}
+    {% trans "Payment Failed" %}
+  {% endif %}
+{% endblock %}
+
+{% block vendor_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'assets/css/common.css' %}">
+{% endblock vendor_css %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-screen 
+    {% if payment_success %}bg-green-50{% else %}bg-red-50{% endif %}">
+  <div class="bg-white shadow-lg rounded-2xl p-8 text-center max-w-lg">
+
+
+    {% if payment_success %}
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 mx-auto mb-4 text-green-600" 
+           fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>
+      </svg>
+      <h1 class="text-2xl font-bold text-green-600 mb-2">{% trans "Payment Successful!" %}</h1>
+      <p class="text-gray-600 mb-6">{% trans "Your transaction has been completed successfully." %}</p>
+      <a href="{% url 'index' %}" 
+         class="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition">
+        {% trans "Go to Dashboard" %}
+      </a>
+
+
+    {% else %}
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 mx-auto mb-4 text-red-600" 
+           fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 9l-6 6m0-6l6 6"/>
+      </svg>
+      <h1 class="text-2xl font-bold text-red-600 mb-2">{% trans "Payment Failed" %}</h1>
+      <p class="text-gray-600 mb-6">{% trans "Your payment could not be processed. Please try again." %}</p>
+      <a href="{% url 'checkout' %}" 
+         class="px-6 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition">
+        {% trans "Retry Payment" %}
+      </a>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock content %}

@@ -15,5 +15,11 @@ urlpatterns =[
     path("patients/" , views.PatientListView.as_view() , name='patients_list') ,
 
     ## get available slot for the clinic
-    path('get-available-clinic-slots' , views.ClinicAvailableTimeSlots.as_view() , name="clinic_available_time_slots")
+    path('get-available-clinic-slots' , views.ClinicAvailableTimeSlots.as_view() , name="clinic_available_time_slots") ,
+    path('get-appointment-status/' , views.GetAppointmentView.as_view() , name="get_appointment_status"),
+    path('appointment/cancel/' , views.CancelAppointmentView.as_view() , name="appointment_cancel"),
+
+    ## paypal
+    path('paypal/create-order/' , views.CreatePaypalOrderView.as_view() , name="create_paypalorder"),
+
 ]

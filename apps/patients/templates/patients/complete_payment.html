@@ -1,0 +1,166 @@
+{% extends layout_path %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block vendor_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'vendor/libs/apex-charts/apex-charts.css' %}" />
+<link rel="stylesheet" href="{% static 'assets/css/common.css' %}">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock vendor_css %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ page_title }}</h2>
+
+    <div class="form-group mb-3">
+        <label for="patient_select">Select Patient</label>
+        <select id="patient_select" class="form-control select2">
+        </select>
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="pending_amount">Pending Amount</label>
+        <input type="text" id="pending_amount" class="form-control" readonly placeholder="Select patient to view amount" value='0'>
+        <input type="hidden" id="appointemnt_id" readonly  value='0'>
+    </div>
+
+    <button id="continue_btn" class="btn btn-primary" disabled>Continue to Pay</button>
+</div>
+{% endblock content %}
+
+{% block page_js %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#patient_select').select2();
+
+      let GET_BASE_URL = "{{ BASE_URL }}";
+
+        $('#patient_select').select2({
+            placeholder : 'Choose Patient' ,
+            width: '100%' ,
+        })
+
+        const fetchPatients = () =>{
+
+            $.ajax({
+                url : `${GET_BASE_URL}/api/v1/patients` ,
+                type : "GET" ,
+                success : (data) =>{
+                    console.log(data)
+                    
+                    $('#patient_select').append(
+                            new Option('Choose Patient', '', false, false)
+                    )
+
+                    data.forEach((item)=>{
+                        $('#patient_select').append(
+                            new Option(`${item.firstname} ${item.lastname}`, parseInt(item.userid), false, false)
+                        )
+                    })
+
+                    // on change the patient
+                    $('#patient_select').on('change' , (e)=>{
+                        let patientId =  $(e.target).val()
+
+                        data.forEach((item)=>{
+                            let userId = parseInt(item.userid);
+
+                            if (userId === parseInt(patientId)) {
+                                let appointment = item.appointment_patient[0];
+                                
+                                console.log(appointment)
+                                if (parseInt(appointment.status) === 1){
+                                    $('#pending_amount').val(0);
+                                    $("#continue_btn").prop('disabled', true);
+                                    return 
+                                }else{
+                                    if (appointment && appointment.payment_appointment) {
+                                    let appointmentAmount = parseFloat(appointment.payment_appointment.amount);
+
+                                    $('#pending_amount').val(appointmentAmount);
+                                    $("#appointemnt_id").val(appointment.id);
+
+                                    if (appointmentAmount > 0) {
+                                        $("#continue_btn").prop('disabled', false);
+                                    } else {
+                                        $("#continue_btn").prop('disabled', true);
+                                    }
+                                } else {
+                                    $('#pending_amount').val(0);
+                                    $("#continue_btn").prop('disabled', true);
+                                }
+
+                                }
+
+                                
+                            }
+
+                        })
+                    })
+
+                }
+            })
+        }
+
+        fetchPatients()
+
+
+
+    $(document).on('click','#continue_btn', function() {
+        let patient_id = $('#patient_select').val() ;
+        let amount = parseFloat($('#pending_amount').val()) ;
+        let appointment =  $("#appointemnt_id").val()
+        let $btn = $(this);
+
+        if(patient_id && amount && appointment) {
+            $btn.prop('disabled', true).text("Please wait...");
+
+            $.ajax({
+                url: `${GET_BASE_URL}/api/v1/paypal/create-order/`,
+                type: "POST",  contentType: "application/json",
+                data: JSON.stringify({
+                            amount: amount,
+                            appointment: appointment
+                        }),
+                success: function(response) {
+                    if (response.approval_url) {
+                        window.location.href = response.approval_url;
+                    } else {
+                        // alert("Error creating order");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Error creating order!',
+                            confirmButtonText: 'Retry'
+                        }).then(() => {
+                            // Reset button
+                            $btn.prop('disabled', false).text("Continue to Pay");
+                        });
+                    }
+                },
+                error: function() {
+                    alert("Something went wrong");
+                    Swal.fire({
+                        icon :'error' ,
+                        title: 'Oops...',
+                        text: 'Something went wrong!',
+                        confirmButtonText: 'Retry'
+                    })
+                    .then(() => {
+                        $btn.prop('disabled', false).text("Continue to Pay");
+                    });
+
+                    return
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock page_js %}

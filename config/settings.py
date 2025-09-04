@@ -203,6 +203,12 @@ THEME_VARIABLES = THEME_VARIABLES
 
 
 
-# Your stuff...
+# Your stuff
 # ------------------------------------------------------------------------------
+
+PAYPAL_CLIENT_ID= os.environ.get('PAYPAL_CLIENT_ID')
+PAYPAL_CLIENT_SECRET=os.environ.get('PAYPAL_CLIENT_SECRET')
+PAYPAL_MODE=os.environ.get('PAYPAL_MODE')
+PAYPAL_BASE_URL =  os.environ.get('PAYPAL_BASE_URL')
+
 # AUTH_USER_MODEL  = 'clinics.UserRole'
