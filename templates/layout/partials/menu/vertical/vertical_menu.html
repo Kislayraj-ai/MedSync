@@ -61,12 +61,12 @@
         </li>
 
 
-        <li class="menu-item {% if '/view-doctors/' in request.path %}active{% endif %}">
-          <a  href="{% url 'view_doctors'  %}" class="menu-link">
+        <li class="menu-item {% if '/view-clinic-user/' in request.path %}active{% endif %}">
+          <a  href="{% url 'view_clinic_user'  %}" class="menu-link">
             <div class="text-truncate" data-i18n="Without navbar">View Doctors</div>
           </a>
         </li>
-
+        
         </li>
       </ul>
     </li>
@@ -81,11 +81,6 @@
           </a>
           <ul class="menu-sub">
 
-            {% comment %} <li class="menu-item {% if '/view-patients/' in request.path %}active{% endif %}">
-              <a  href="{% url 'view_patients'  %}" class="menu-link">
-                <div class="text-truncate" data-i18n="Without navbar">View Patients</div>
-              </a>
-            </li> {% endcomment %}
             
             <li class="menu-item {% if '/add-appointment' in request.path %}active{% endif %}">
               <a  href="{% url 'add_appointment'  %}" class="menu-link">
@@ -93,9 +88,15 @@
               </a>
             </li>
 
-            <li class="menu-item {% if '/add-appointment' in request.path %}active{% endif %}">
-              <a  href="{% url 'add_appointment'  %}" class="menu-link">
+            <li class="menu-item {% if '/view-appointment' in request.path %}active{% endif %}">
+              <a  href="{% url 'view_appointment'  %}" class="menu-link">
                 <div class="text-truncate" data-i18n="Without navbar">View Appointement</div>
+              </a>
+            </li>
+
+            <li class="menu-item {% if '/view-patients/' in request.path %}active{% endif %}">
+              <a  href="{% url 'view_patients'  %}" class="menu-link">
+                <div class="text-truncate" data-i18n="Without navbar">View Patients</div>
               </a>
             </li>
 

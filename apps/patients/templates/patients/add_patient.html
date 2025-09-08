@@ -6,7 +6,6 @@
 
 {% block vendor_css %}
 {{ block.super }}
-  <link rel="stylesheet" href="{% static 'vendor/libs/apex-charts/apex-charts.css' %}" />
   <link rel="stylesheet" href="{% static "assets/css/common.css" %}">
 
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -43,6 +42,8 @@
             {% comment %} Main Form Here {% endcomment %}
             <form method="POST" enctype="multipart/form-data">
               {% csrf_token %}
+
+              <input type="hidden"  name="readmitpatient"  value="{{readmitpatients}}" >
               
 
                 <div class="row g-4">
@@ -119,7 +120,7 @@
 
               <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top">
                 <a class="btn btn-outline-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Save Patient</button>
+                <button type="submit" class="btn btn-primary">Continue...</button>
               </div>
            
             </form>

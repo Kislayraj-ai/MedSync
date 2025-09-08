@@ -1,7 +1,7 @@
 from django.shortcuts import render , redirect
 from django.views.generic import TemplateView
 from web_project import TemplateLayout
-from .models import Clinic , ClinicTime , DoctorProfile , UserRole , Roles
+from .models import Clinic , ClinicTime , DoctorProfile , UserRole , Roles , AdminUserProfile
 from django.contrib import messages
 from django.conf import settings
 from datetime import date
@@ -10,6 +10,7 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
+from .forms import AdminUserForm
 
 
 # def addClinic(request):
@@ -253,25 +254,24 @@ class DoctorAdd(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self , super().get_context_data(**kwargs))
         context["BASE_URL"] =  settings.BASE_URL
-        context['page_title'] = 'Add Doctors'
+        context['page_title'] = 'Add Admin User'
         return context
 
-    def post(self , request , *args, **kwargs):
-
+    def post(self, request, *args, **kwargs):
         try:
-            username =  request.POST.get('username')
+            username = request.POST.get('username')
             firstname = request.POST.get('first_name')
             lastname = request.POST.get('last_name')
             email = request.POST.get('email')
             password = request.POST.get('password')
-            role = request.POST.get('role')
+            role_id = request.POST.get('role')
 
             specialization = request.POST.get('specialization')
             experience = request.POST.get('experience')
             fees = request.POST.get('fees')
-            clinic = request.POST.get('clinic')
+            clinic_id = request.POST.get('clinic')
 
-            # Create User
+            ### creating user
             user = User.objects.create(
                 username=username,
                 first_name=firstname,
@@ -280,50 +280,66 @@ class DoctorAdd(TemplateView):
                 password=make_password(password)
             )
 
-            userrole =  UserRole()
-            userrole.user =  user 
-            userrole.role=  Roles.objects.get(id=role)
-            userrole.save()
+            ### for roles here
+            role = Roles.objects.get(id=role_id)
+            UserRole.objects.create(user=user, role=role)
 
+            
+            ### roles based profiles here
+            if role.name == Roles.RoleChoices.ADMIN:
+                AdminUserProfile.objects.create(
+                    user=user,
+                    clinic_id=clinic_id,
+                )
+                messages.success(request, 'Admin has been added successfully !!')
 
-            DoctorProfile.objects.create(
+            elif role.name == Roles.RoleChoices.DOCTOR:
+                DoctorProfile.objects.create(
                     user=user,
                     specialization=specialization,
                     experience=experience,
                     fees=fees,
-                    clinic_id=clinic 
+                    clinic_id=clinic_id
                 )
+                messages.success(request, 'Doctor has been added successfully !!')
 
-            messages.success(request ,  'Doctor has been added successfully !!')
-            return redirect('add_doctors')
+            else:
+                messages.warning(request, 'Only Admin and Doctor roles are supported here.')
 
-        except Exception as e :
-            messages.error(request , f"Error :- {e}")
-            return redirect('add_doctors')
-        
+            return redirect('view_clinic_user')
 
-class DoctorViewList(TemplateView):
-     
-     def get_context_data(self, **kwargs):
-         context = TemplateLayout.init(self , super().get_context_data(**kwargs))
-         context["BASE_URL"] =  settings.BASE_URL
-         context['page_title'] = 'View Doctors'
-         return context
+        except Exception as e:
+            messages.error(request, f"Error :- {e}")
+            return redirect('view_clinic_user')
 
 class DoctorViewEdit(TemplateView):
     def get_context_data(self, **kwargs) :
         context = TemplateLayout.init(self , super().get_context_data(**kwargs))
         context["BASE_URL"] =  settings.BASE_URL
-        context['page_title'] = 'Edit Doctors'
+        context['page_title'] = 'Edit Admin User'
 
         pk = self.kwargs.get('pk')
 
-        doctor_info = User.objects.filter(id=pk).prefetch_related('doctor_profile').first()
+        user_info = (
+            User.objects
+            .select_related("doctor_profile", "admin_profile")
+            .prefetch_related("roles__role")
+            .get(id=pk)
+        )
 
-        doctorprofile =   doctor_info.doctor_profile.first()
 
-        context['doctorinfo'] = doctor_info
+        role = user_info.roles.first().role.name if user_info.roles.exists() else None
+        # print("roles " , role)
+
+        if role == Roles.RoleChoices.ADMIN:
+            doctorprofile = user_info.admin_profile
+        elif role == Roles.RoleChoices.DOCTOR:
+            doctorprofile = user_info.doctor_profile
+
+        # print()
+        context['doctorinfo'] = user_info
         context['doctorprofile'] = doctorprofile
+        context['role'] = role
 
         return context
     
@@ -335,6 +351,7 @@ class DoctorViewEdit(TemplateView):
             firstname = request.POST.get('first_name')
             lastname = request.POST.get('last_name')
             email = request.POST.get('email')
+            role = request.POST.get('role')
 
             if not pkid:
                 messages.error(request, "Doctor ID missing!")
@@ -356,23 +373,93 @@ class DoctorViewEdit(TemplateView):
                 }
             )
 
+            ### for roles here
+            role = Roles.objects.get(id=role)
+            UserRole.objects.update_or_create(
+                user=user,
+                defaults={"role": role}
+            )
 
-
-            DoctorProfile.objects.update_or_create(
-                    user=user ,
+            # Roles based profiles
+            if role.id == Roles.RoleChoices.DOCTOR:   # Doctor role
+                DoctorProfile.objects.update_or_create(
+                    user=user,
                     defaults={
-                        'specialization': specialization,
-                        'experience': experience,
-                        'fees': fees,
-                        'clinic_id': clinic,
-                    }
+                        "specialization": specialization,
+                        "experience": experience,
+                        "fees": fees,
+                        "clinic_id": clinic,
+                    },
                 )
+                messages.success(request ,  'Admin updated successfully !!')
+            elif role.id == Roles.RoleChoices.ADMIN:
+                AdminUserProfile.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        "clinic_id": clinic,
+                    },
+                )
+                messages.success(request ,  'Admin updated successfully !!')
 
-            messages.success(request ,  'Doctor has been updated successfully !!')
-            return redirect('edit_doctor' , pkid)
+            
+            return redirect('view_clinic_user')
 
         except Exception as e :
             messages.error(request , f"Error :- {e}")
             print(f"Error :- {e}")
-            return redirect('edit_doctor' , pkid)
-            
+            return redirect('view_clinic_user')
+
+
+class DoctorViewList(TemplateView):
+     
+     def get_context_data(self, **kwargs):
+         context = TemplateLayout.init(self , super().get_context_data(**kwargs))
+         context["BASE_URL"] =  settings.BASE_URL
+         context['page_title'] = 'View Admin User'
+         return context
+
+
+# class AdminUser(TemplateView):
+#     def get_context_data(self, **kwargs):
+#         context = TemplateLayout.init(self,super().get_context_data(**kwargs))
+#         context["BASE_URL"] =  settings.BASE_URL
+#         context['page_title'] = 'Add Admin User'
+#         context['admin_form'] =  AdminUserForm()
+#         return context
+
+#     def post(self, request, *args, **kwargs):
+#         try:
+#             form = AdminUserForm(request.POST)
+#             if form.is_valid():
+#                 user = form.save(commit=False)
+#                 user.set_password(form.cleaned_data['password'])
+#                 user.save()
+
+#                 # Assign ADMIN role
+#                 admin_role = Roles.objects.get(name=Roles.ADMIN)
+#                 UserRole.objects.create(user=user, role=admin_role)
+
+#                 # Success message
+#                 messages.success(request, f"Admin user '{user.username}' created successfully.")
+
+#                 # Redirect back to the add admin page
+#                 return redirect('add_admin_user')
+
+#             else:
+#                 # Form errors
+#                 messages.error(request, "Please correct the errors below.")
+#                 return render(request, 'your_template.html', {'form': form})
+
+#         except Exception as e:
+#             messages.error(request, f"An error occurred: {str(e)}")
+#             return redirect('add_admin_user')
+        
+
+
+# class AdminUserList(TemplateView):
+#     def get_context_data(self, **kwargs):
+#         context = TemplateLayout.init(self,super().get_context_data(**kwargs))
+#         context["BASE_URL"] =  settings.BASE_URL
+#         context['page_title'] = 'View Admin User'
+
+#         return context

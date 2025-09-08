@@ -54,28 +54,26 @@
 
                 <input type="hidden" name="pkid"  value="{{doctorinfo.id}}" />
 
-                <!-- Username -->
+            
                 <div class="col-md-6">
                     <label for="username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" value="{{doctorinfo.username}}" placeholder="Enter username" required>
+                    <input type="text" class="form-control" id="username" name="username" value="{{doctorinfo.username}}" 
+                    placeholder="Enter username" required  readonly /> 
                 </div>
 
-                <!-- First Name -->
                 <div class="col-md-6">
                     <label for="first_name" class="form-label">First Name</label>
                     <input type="text" class="form-control" id="first_name" name="first_name" value="{{doctorinfo.first_name}}" placeholder="First name">
                 </div>
 
-                <!-- Last Name -->
                 <div class="col-md-6">
                     <label for="last_name" class="form-label">Last Name</label>
                     <input type="text" class="form-control" id="last_name" name="last_name" value="{{doctorinfo.last_name}}" placeholder="Last name">
                 </div>
 
-                <!-- Email -->
                 <div class="col-md-6">
                     <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="email" name="email" value="{{doctorinfo.last_name}}" placeholder="example@email.com" required>
+                    <input type="email" class="form-control" id="email" name="email" value="{{doctorinfo.email}}" placeholder="example@email.com" required>
                 </div>
 
                 <!-- Password -->
@@ -84,27 +82,29 @@
                     <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
                 </div> {% endcomment %}
 
-                <!-- Role Dropdown -->
+
                 <div class="col-md-6">
                     <label for="role" class="form-label">Role</label>
-                    <select class="form-select" id="role" name="role" required>
-                        <option value="2" selected>Doctor</option>
+                 
+                     <select class="form-select" id="role" name="role" required>
+                        <option selected>Choose Role</option>
+                        <option value="1" {% if role == 'ADMIN' %}selected{% endif %}>Admin</option>
+                        <option value="2" {% if role == 'DOCTOR' %}selected{% endif %}>Doctor</option>
                     </select>
                 </div>
 
-                <!-- Specialization -->
                 <div class="col-md-6">
                     <label for="specialization" class="form-label">Specialization</label>
                     <input type="text" class="form-control" id="specialization" value="{{doctorprofile.specialization}}" name="specialization" placeholder="e.g. Cardiologist">
                 </div>
 
-                <!-- Experience -->
+
                 <div class="col-md-6">
                     <label for="experience" class="form-label">Experience (Years)</label>
                     <input type="number" class="form-control" id="experience" name="experience" value="{{doctorprofile.experience}}" min="0" placeholder="5">
                 </div>
 
-                <!-- Fees -->
+
                 <div class="col-md-6">
                     <label for="fees" class="form-label">Fees</label>
                     <div class="input-group">
@@ -114,7 +114,6 @@
                     </div>
                 </div>
 
-                <!-- Clinic -->
                 <div class="col-md-6">
                     <label for="clinic" class="form-label">Clinic</label>
                     <select class="form-select" id="clinic" name="clinic">
@@ -130,7 +129,7 @@
             <!-- Actions -->
             <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top">
               <a  href="{% url "view_clinic" %}" class="btn btn-outline-secondary btn-soft">Cancel</a>
-              <button type="submit" class="btn btn-primary btn-soft">Save Doctor</button>
+              <button type="submit" class="btn btn-primary btn-soft">Update Profile</button>
             </div>
 
           </form>
