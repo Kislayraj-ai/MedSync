@@ -1,0 +1,270 @@
+{% extends layout_path %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block vendor_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'js/DataTables/datatables.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'assets/css/common.css' %}">
+  {% comment %} <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet"> {% endcomment %}
+
+  <style>
+    .bg-darkgreen {
+      background-color: #006400 !important;
+      color: #fff;
+    }
+    .accordion-button::after {
+      background-image: none;
+    }
+    .accordion-button.collapsed i {
+      transform: rotate(0deg);
+      transition: transform 0.3s;
+    }
+    .accordion-button i {
+      transform: rotate(90deg);
+      transition: transform 0.3s;
+    }
+  </style>
+{% endblock vendor_css %}
+
+{% block content %}
+
+<div class="container py-4">
+
+  <!-- Header with status dropdown -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h3 class="fw-bold mb-0">
+      <i class="bx bx-calendar-check me-2 text-primary"></i> Appointment Details
+    </h3>
+  </div>
+
+  <!-- Accordion Section -->
+  <div class="accordion" id="patientAccordion">
+
+    <!-- Patient Profile Accordion -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="profileHeading">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                data-bs-target="#profileCollapse" aria-expanded="false" aria-controls="profileCollapse">
+          <i class="bx bx-user-circle fs-5 me-2"></i> Patient Profile
+        </button>
+      </h2>
+      <div id="profileCollapse" class="accordion-collapse collapse" aria-labelledby="profileHeading" data-bs-parent="#patientAccordion">
+        <div class="accordion-body">
+          <div class="row g-4">
+
+            <!-- Basic Info -->
+            <div class="col-md-6">
+              <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3"><i class="bx bx-id-card me-2 text-primary"></i>Basic Info</h6>
+                  <p><strong>Name:</strong> {{ user_detail.first_name }} {{ user_detail.last_name }}</p>
+                  <p><strong>Healthcare No:</strong> {{ patient_profile.healthcare_number }}</p>
+                  <p><strong>Sex:</strong> {{ patient_profile.get_sex_display }}</p>
+                  <p><strong>DOB:</strong> {{ patient_profile.dob }} ({{ patient_profile.age }} yrs)</p>
+                  <p><strong>Marital Status:</strong> {{ patient_profile.get_marital_status_display }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Address -->
+            <div class="col-md-6">
+              <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3"><i class="bx bx-map me-2 text-success"></i>Address</h6>
+                  <p><strong>Street:</strong> {{ patient_profile.street_address }}</p>
+                  <p><strong>City:</strong> {{ patient_profile.city }}</p>
+                  <p><strong>State:</strong> {{ patient_profile.state }}</p>
+                  <p><strong>Country:</strong> {{ patient_profile.country }}</p>
+                  <p><strong>Postal Code:</strong> {{ patient_profile.postal_code }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div class="col-md-6">
+              <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3"><i class="bx bx-phone-call me-2 text-danger"></i>Emergency Contact</h6>
+                  <p><strong>Name:</strong> {{ patient_profile.emergency_first_name }} {{ patient_profile.emergency_last_name }}</p>
+                  <p><strong>Relationship:</strong> {{ patient_profile.emergency_relationship }}</p>
+                  <p><strong>Contact:</strong> {{ patient_profile.emergency_contact_number }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Other Info -->
+            <div class="col-md-6">
+              <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body">
+                  <h6 class="fw-bold mb-3"><i class="bx bx-file me-2 text-secondary"></i>Other Info</h6>
+                  <p><strong>Reason for Registration:</strong> {{ patient_profile.reason_for_registration|default:"N/A" }}</p>
+                  <p><strong>Notes:</strong> {{ patient_profile.additional_notes|default:"N/A" }}</p>
+                  <p><strong>Insurance ID:</strong> {{ patient_profile.insurance_id|default:"N/A" }}</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% comment %} <!-- Appointment Details Accordion -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="appointmentHeading">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                data-bs-target="#appointmentCollapse" aria-expanded="false" aria-controls="appointmentCollapse">
+          <i class="bx bx-time-five fs-5 me-2"></i> Appointment Information
+        </button>
+      </h2>
+      <div id="appointmentCollapse" class="accordion-collapse collapse" aria-labelledby="appointmentHeading" data-bs-parent="#patientAccordion">
+        <div class="accordion-body">
+          <p><strong>Date:</strong> {{ appointment.appdate }}</p>
+          <p><strong>Time:</strong> {{ appointment.apptime }}</p>
+          <p><strong>Doctor:</strong> {{ doctor.first_name }} {{ doctor.last_name }}</p>
+          <p>
+            <strong>Status:</strong>
+            <span class="badge 
+              {% if appointment.is_active == "0" %} bg-success text-dark
+              {% elif appointment.is_active == "1" %} bg-danger
+              {% elif appointment.is_active == "2" %} bg-darkgreen
+              {% else %} bg-info
+              {% endif %}">
+              {{ appointment.get_is_active_display }}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Accordion -->
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="paymentHeading">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                data-bs-target="#paymentCollapse" aria-expanded="false" aria-controls="paymentCollapse">
+          <i class="bx bx-credit-card fs-5 me-2"></i> Payment Details
+        </button>
+      </h2>
+      <div id="paymentCollapse" class="accordion-collapse collapse" aria-labelledby="paymentHeading" data-bs-parent="#patientAccordion">
+        <div class="accordion-body">
+          {% if paymenthistory %}
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+              <div>
+                <h6 class="text-muted mb-1">Amount</h6>
+                <p class="fs-5 fw-semibold mb-2">₹ {{ paymenthistory.amount }}</p>
+                <h6 class="text-muted mb-1">Date</h6>
+                <p class="mb-0">{{ paymenthistory.created_at|date:"M d, Y H:i" }}</p>
+              </div>
+              <div class="text-md-end mt-3 mt-md-0">
+                <h6 class="text-muted mb-1">Status</h6>
+                <span class="badge px-3 py-2 fs-6
+                  {% if paymenthistory.status == '1' %} bg-success
+                  {% elif paymenthistory.status == '0' %} bg-warning text-dark
+                  {% elif paymenthistory.status == '2' %} bg-primary
+                  {% else %} bg-danger
+                  {% endif %}">
+                  {{ paymenthistory.get_status_display }}
+                </span>
+              </div>
+            </div>
+          {% else %}
+            <div class="text-center text-muted py-4">
+              <i class="bx bx-info-circle fs-3 d-block mb-2"></i>
+              <p class="mb-0">No Payment Record Found</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div> {% endcomment %}
+<div class="card shadow-sm border-0 rounded-3 mt-4">
+  <div class="card-header bg-light d-flex align-items-center">
+    <i class="bx bx-time-five fs-4 me-2 text-secondary"></i>
+    <h5 class="mb-0">Appointments</h5>
+  </div>
+  <div class="card-body p-0">
+    {% if appointments %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Doctor</th>
+              <th>Appointment Status</th>
+              <th>Payment</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in appointments %}
+              <tr data-bs-toggle="collapse" data-bs-target="#paymentRow{{ forloop.counter }}" aria-expanded="false" class="cursor-pointer">
+                <td>{{ forloop.counter }}</td>
+                <td>{{ app.date }}</td>
+                <td>{{ app.doctor.first_name }} {{ app.doctor.last_name }}</td>
+                <td>
+                  <span class="badge
+                    {% if app.status == '0' %} bg-success text-dark
+                    {% elif app.status == '1' %} bg-danger
+                    {% elif app.status == '2' %} bg-dark
+                    {% else %} bg-info
+                    {% endif %}">
+                    {{ app.is_active }}
+                  </span>
+                </td>
+                <td>
+                  {% if app.payment %}
+                    <span class="text-primary fw-semibold">View</span>
+                  {% else %}
+                    <span class="text-muted">No Payment</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <!-- Expandable Payment Row -->
+              <tr class="collapse bg-light" id="paymentRow{{ forloop.counter }}">
+                <td colspan="5">
+                  {% if app.payment %}
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between p-3">
+                      <div>
+                        <h6 class="text-muted mb-1">Amount</h6>
+                        <p class="fs-5 fw-semibold mb-2">₹ {{ app.payment.amount }}</p>
+                        <h6 class="text-muted mb-1">Date</h6>
+                        <p class="mb-0">{{ app.payment.created_at|date:"M d, Y H:i" }}</p>
+                      </div>
+                      <div class="text-md-end mt-3 mt-md-0">
+                        <h6 class="text-muted mb-1">Payment Status</h6>
+                        <span class="badge px-3 py-2 fs-6
+                          {% if app.payment.status == '1' %} bg-success
+                          {% elif app.payment.status == '0' %} bg-warning text-dark
+                          {% elif app.payment.status == '2' %} bg-primary
+                          {% else %} bg-danger
+                          {% endif %}">
+                          {{ app.payment.get_status_display }}
+                        </span>
+                      </div>
+                    </div>
+                  {% else %}
+                    <div class="text-center text-muted py-3">
+                      <i class="bx bx-info-circle fs-4 d-block mb-2"></i>
+                      <p class="mb-0">No Payment Record Found</p>
+                    </div>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center text-muted py-4">
+        <i class="bx bx-calendar-x fs-3 d-block mb-2"></i>
+        <p class="mb-0">No Appointments Found</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+  </div>
+</div>
+{% endblock %}

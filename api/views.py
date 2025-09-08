@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
 from apps.clinics.models import Clinic , User , ClinicTime , DoctorProfile
-from apps.clinics.serializesrs import ClinicSerializer , DoctorSerializer ,PatientSerializer , ClinicTimeSlotsSerializer , AppointmentSerializer
+from apps.clinics.serializesrs import ClinicSerializer , DoctorSerializer ,PatientSerializer , ClinicTimeSlotsSerializer , AppointmentSerializer , ClinicUserSerializer
 from rest_framework import generics , status
 from apps.patients.models  import PatientProfile, Apointment
 from rest_framework.response import Response
@@ -21,18 +21,38 @@ class ClinicListSet(ModelViewSet):
 
 
 
-
 class DoctorView(ModelViewSet):
     serializer_class = DoctorSerializer
 
     def get_queryset(self):
         getid = self.request.GET.get('clinicid')
-        alldoctors = User.objects.filter(roles__role__name="DOCTOR").prefetch_related("doctor_profile", "roles__role")
+        alldoctors = (
+            User.objects.filter(roles__role__name="DOCTOR")
+            .select_related("doctor_profile")
+            .prefetch_related("roles__role")
+        )
 
         if getid is not None:
             alldoctors = alldoctors.filter(doctor_profile__clinic_id=getid)
 
         return alldoctors
+
+
+class ClinicAdminUsers(generics.ListAPIView):
+    serializer_class = ClinicUserSerializer
+
+    def get_queryset(self):
+        getid = self.request.GET.get('clinicid')
+        alldoctors = (
+            User.objects.filter(roles__role__name__in=["ADMIN" , "DOCTOR"] )
+            .prefetch_related("roles__role")
+        )
+
+        if getid is not None:
+            alldoctors = alldoctors.filter(doctor_profile__clinic_id=getid)
+
+        return alldoctors
+
 
 
 ## for patients
@@ -45,13 +65,21 @@ class PatientListView(generics.ListAPIView):
         start = request.GET.get("start")
         end = request.GET.get("end")
         qs =  self.get_queryset()
+        
+        clinicid = int(request.GET.get("clinicid", 0) or 0)
+
 
         if start and end:
             start_dt = datetime.fromisoformat(start)
             end_dt = datetime.fromisoformat(end)
-            print("showin the real data time" , start_dt.date(), end_dt.date())
+            # print("showin the real data time" , start_dt.date(), end_dt.date())
             qs = self.get_queryset().filter(
                 appointment_patient__appdate__range=[start_dt.date(), end_dt.date()]
+            ).distinct()
+
+        elif  clinicid > 0:
+            qs = self.get_queryset().filter(
+                appointment_patient__doctor__doctor_profile__clinic_id=int(clinicid)
             ).distinct()
         else:
             qs = self.get_queryset()
@@ -85,8 +113,8 @@ class ClinicAvailableTimeSlots(generics.ListAPIView):
                 });
     
         try:
-            getuser =  User.objects.get(id=doctor)
-            getdoctor =  DoctorProfile.objects.get(user=getuser)
+            getuser =  User.objects.prefetch_related('doctor_profile').get(id=doctor)
+            getdoctor =  getuser.doctor_profile
             
             if getdoctor.clinic_id != int(clinicid):
                 return Response({
@@ -161,7 +189,7 @@ class GetAppointmentView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = Apointment.objects.all()
-        appoinment = self.request.GET.get('appointment')
+        appoinment = self.request.GET.get('appointment' , 0)
         if int(appoinment) > 0:
             queryset =  queryset.filter(id=appoinment)
         

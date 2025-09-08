@@ -12,7 +12,7 @@
 
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-  <style>
+<style>
   /* Ensure event elements position children correctly */
   .fc .fc-timegrid-event,
   .fc .fc-daygrid-event {
@@ -50,9 +50,14 @@
   font-size: 14px;
   color: #fff;  /* white for visibility on colored events */
 }
+.card {
+  overflow: visible !important;
+}
 
-{% comment %} .fc-event-edit:hover { color: #ffd43b; }   /* yellow for edit hover */
-.fc-event-cancel:hover { color: #ff6b6b; } /* red for cancel hover */ {% endcomment %}
+.card-header {
+  z-index: 10; 
+  position: relative;
+}
 
 
 </style>
@@ -61,32 +66,52 @@
 
 {% block content %}
 
-  <div class="row gap-4 mb-3">
-    <div class="card">
-      <div class="card-header p-3 d-flex justify-content-between w-100" id='appointmentcalendercard'>
-        <h4>Appointment Calender</h4>
-        {% if True %}
-          <div class="d-flex gap-2 w-50">
-            {% comment %} <label for="clinic">Clinic</label> {% endcomment %}
-            <select name="clinic" id="clinic" class="form-control">
-            </select>
+        <div class="row mb-4">
+          <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-3">
+              <div class="card-header bg-white border-0 pb-0">
+                <h4 class="mb-0 d-flex align-items-center">
+                  <i class="bx bx-calendar-event text-primary fs-4 me-2"></i>
+                  Appointment Calendar
+                </h4>
+              </div>
+              <div class="card-body mt-2">
+                <div class="row g-3">
+                  <!-- Select Clinic -->
+                  <div class="col-md-4">
+                    <label for="clinic" class="form-label fw-semibold">
+                      <i class="bx bx-building-house me-1 text-muted"></i> Clinic
+                    </label>
+                    <select name="clinic" id="clinic" class="form-select">
+                      <option value="">Choose Clinic</option>
+                    </select>
+                  </div>
+
+                  <!-- Select Doctor -->
+                  <div class="col-md-4">
+                    <label for="doctor" class="form-label fw-semibold">
+                      <i class="bx bx-user-md me-1 text-muted"></i> Doctor
+                    </label>
+                    <select name="doctor" id="doctor" class="form-select">
+                      <option value="">Choose Doctor</option>
+                    </select>
+                  </div>
+
+                  <!-- Select Patient -->
+                  <div class="col-md-4">
+                    <label for="patient_select" class="form-label fw-semibold">
+                      <i class="bx bx-user me-1 text-muted"></i> Patient
+                    </label>
+                    <select name="patient" id="patient" class="form-select">
+                      <option value="">Choose patient</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
 
-        {% else %}
-          <input type="hidden"  name="clinic" id="clinic" value="0" />
-        
-        {% endif %}
-
-        <div class="d-flex gap-2 w-50">
-            {% comment %} <label for="clinic">Clinic</label> {% endcomment %}
-            <select name="doctor" id="doctor" class="form-control">
-            </select>
-          </div>
-
-      </div>
-    </div>
-
-  </div>
 
                   {% for msg in messages %}
                 {% if msg.tags == "success" %}
@@ -103,8 +128,7 @@
   <div id="calendar"></div>
 
 
-<!-- Modal -->
-<!-- Modal -->
+
 <div class="modal fade" id="slotModal" tabindex="-1" aria-labelledby="slotModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content w-100">
@@ -151,14 +175,45 @@
        $('#clinic').select2({
             placeholder : 'Choose Clinic' ,
             width: '100%' ,
-            dropdownParent : $('#appointmentcalendercard') 
+            dropdownParent: $('.card') 
         })
         
         $('#doctor').select2({
             placeholder : 'Choose Doctor' ,
             width: '100%' ,
-            dropdownParent : $('#appointmentcalendercard') 
+            dropdownParent: $('.card') 
         })
+
+        $('#patient').select2({
+            placeholder : 'Choose Patient' ,
+            width: '100%' ,
+            dropdownParent: $('.card') 
+        })
+        
+
+            const fetchPatients = (clinicid=0) =>{
+            $.ajax({
+                url : `${GET_BASE_URL}/api/v1/patients` ,
+                  type : "GET" ,
+                  data :{
+                    clinicid
+                  },
+                  success : (data) =>{
+
+                      $('#patient').append(
+                              new Option('Choose Patient', '', false, false)
+                      )
+
+                      data.forEach((item)=>{
+                        $('#patient').append(
+                            new Option(`${item.firstname} ${item.lastname}`, item.userid, false, false)
+                        )
+                    })
+                  }
+              })
+          }
+
+       // fetchPatients()
         
         const fetchDoctors = (getclinicid) =>{
             $.ajax({
@@ -204,7 +259,6 @@
                             new Option(item.name, item.id, false, false)
                         )
                     })
-                    // $('#clinic').trigger('change')
 
                 }
             })
@@ -212,17 +266,17 @@
             $(document).find('#clinic').on('change' , (e)=>{
                 let getid =  $(e.target).val()
                 fetchDoctors(getid)
-
+                fetchPatients(getid)
             })
         }
-
+        
 
         fetchClinic()
     })
 </script>
 
 
-<script src="{% static "custom/calender.js" %}?v=1.5"></script>
+<script src="{% static "custom/calender.js" %}?v=1.8"></script>
 
 
 {% endblock  %}

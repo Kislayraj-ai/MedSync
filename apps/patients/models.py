@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
-from django_mysql.models import EnumField
+
+## only for mysql dirvers
+# from django_mysql.models import EnumField
 # Create your models here.
 
 class PatientProfile(models.Model):
@@ -18,7 +20,7 @@ class PatientProfile(models.Model):
         OTHER = "O", "Other"    
 
     # main info --
-    patient =  models.ForeignKey(User , on_delete=models.CASCADE , related_name="patient_user")
+    patient =  models.OneToOneField(User , on_delete=models.CASCADE , related_name="patient_user")
     # doctor =  models.ForeignKey(User , on_delete=models.CASCADE , related_name="patients_doctor")
     
 
@@ -83,15 +85,6 @@ class PatientProfile(models.Model):
 
         return getage
 
-    # @property
-    # def save(self, *args, **kwargs):
-    #     if self.dob:
-    #         today = date.today()
-    #         calculated_age = today.year - self.dob.year
-    #         if (today.month, today.day) < (self.dob.month, self.dob.day):
-    #             calculated_age -= 1
-    #         self.age = calculated_age
-    #     super().save(*args, **kwargs)
 
 
 class Apointment(models.Model):
@@ -115,11 +108,11 @@ class Apointment(models.Model):
     patient =  models.ForeignKey(PatientProfile , on_delete=models.CASCADE , related_name="appointment_patient")
     appdate = models.DateField(null=False)
     apptime =  models.TimeField(null=False)
-    status = EnumField(
+    status = models.CharField(
         choices=STATUS_CHOICES ,
         default="0",
     )
-    is_active =  EnumField(
+    is_active =  models.CharField(
         choices=ACTIVE_STATUS_CHOICES ,
         default="0",
     )
@@ -140,7 +133,7 @@ class PaymentHistory(models.Model):
     amount =  models.DecimalField(decimal_places=2 , max_digits=5)
     appDate = models.DateField(null=False)
     appTime = models.TimeField(null=False)
-    status = EnumField(
+    status = models.CharField(
         choices= PAYMENT_STATUS ,
         default= "0"
     )

@@ -26,10 +26,26 @@ class PatientAdd(TemplateView):
         time = self.request.GET.get("time")
         clinicid = self.request.GET.get("clinicid")
         doctorid = self.request.GET.get("doctor")
-        
 
-        context["user_form"] = kwargs.get('user_form' , UserForm())
-        context["profile_form"] = kwargs.get('profile_form' , PatientProfileForm)
+        patient = int(self.request.GET.get("patient" , 0) or 0)
+
+
+        if patient > 0:
+            patientdata =  User.objects.prefetch_related('patient_user').get(id=patient) ;
+            patientprofile =  patientdata.patient_user ;
+
+            user_form =  UserForm(instance=patientdata)
+            profile_form = PatientProfileForm(instance=patientprofile)
+
+            context["user_form"] = user_form
+            context["profile_form"] = profile_form
+            context["readmitpatients"] = patient
+
+        else:
+            context["user_form"] = kwargs.get('user_form' , UserForm())
+            context["profile_form"] = kwargs.get('profile_form' , PatientProfileForm())
+            context["readmitpatients"] = patient
+
 
         context["selecteddate"] = date
         context["selectedtime"] = time
@@ -39,26 +55,46 @@ class PatientAdd(TemplateView):
 
         return context
     
-   
+
     def post(self, request , *args, **kwargs):
 
         if request.method == "POST" :
             try:  
                 if request.method == "POST": 
-                    user_form = UserForm(request.POST)
-                    profile_form =  PatientProfileForm(request.POST , request.FILES)
+                    
+                    readmitpatient =  int(request.POST.get('readmitpatient' , 0) or 0)
+
+                    if readmitpatient > 0 :
+                        userdata = User.objects.prefetch_related('patient_user').get(id=readmitpatient)
+                        patientProfile = userdata.patient_user
+
+                        user_form = UserForm(request.POST , instance=userdata)
+                        profile_form =  PatientProfileForm(request.POST , request.FILES ,  instance=patientProfile)
+
+                    else:
+                        user_form = UserForm(request.POST)
+                        profile_form =  PatientProfileForm(request.POST , request.FILES)
+
+
                     if user_form.is_valid() and profile_form.is_valid():
+                        
                         with transaction.atomic():
                             user = user_form.save(commit=False)
-                            user.username = (request.POST.get('first_name', '') + request.POST.get('last_name', '')).lower()
-                            
+
+                            if user._state.adding:
+                                user.username = (
+                                    request.POST.get("first_name", "") + request.POST.get("last_name", "")
+                                ).lower()
+                                
 
                             dob_str =  request.POST.get('dob')
                             dob = datetime.strptime(dob_str, "%Y-%m-%d").date() 
 
                             profile = profile_form.save(commit=False)
-                            profile.patient = user
-                            # profile.doctor_id = request.POST.get('doctor')
+
+                            if profile._state.adding:
+                                profile.patient = user
+                                profile.healthcare_number = request.POST.get('healthcare_number')
 
                             today = date.today()
                             calculated_age = today.year - dob.year
@@ -76,7 +112,7 @@ class PatientAdd(TemplateView):
 
                             ## get doctor
                             docInfo =  User.objects.prefetch_related('doctor_profile').get(id=doctorid)
-                            doctor_profile = docInfo.doctor_profile.first()
+                            doctor_profile = docInfo.doctor_profile
 
                             app =  Apointment()
                             app.doctor_id =  doctorid
@@ -86,24 +122,32 @@ class PatientAdd(TemplateView):
                             app.status =  0
                             app.is_active =  0
 
+                            app.save()
+
                             # add patients here
                             payment =  PaymentHistory()
-                            payment.patient = user
+                            payment.appointment = app
+                            # payment.patient = user
                             payment.amount = doctor_profile.fees
                             payment.appDate = appdate_obj
                             payment.appTime = apptime_obj
                             
+                            
                     
                             user.save()
                             profile.save()
-                            app.save()
                             payment.save()
+                        
 
                         messages.success(request, "Patient created successfully")
-                        return redirect("add_appointment")
+
+                        url = reverse('complete_payment')
+                        fullurl = f"{url}?appointment={app.id}"
+                        return redirect(fullurl)
+
                     else:
-                        # print("UserForm Errors:", user_form.errors)
-                        # print("ProfileForm Errors:", profile_form.errors)
+                        print("UserForm Errors:", user_form.errors)
+                        print("ProfileForm Errors:", profile_form.errors)
                         messages.error(request, "There are some issues in the forms")
 
                         context = self.get_context_data(
@@ -114,7 +158,7 @@ class PatientAdd(TemplateView):
 
             except Exception as e :
                 messages.error(request, f"Error :- {e}")
-                return redirect("add_appointment")
+                return redirect("add_patient")
             
 
 class PatientEdit(TemplateView):
@@ -165,7 +209,7 @@ class PatientEdit(TemplateView):
                 return redirect(fullurl)
 
         if request.method == "POST" :
-            # print(user)
+
             try:
                 user_form =  UserForm(request.POST , instance=user)
                 profile_form =  PatientProfileForm(request.POST , request.FILES , instance=profile)
@@ -213,7 +257,53 @@ class PatientEdit(TemplateView):
             except Exception as e :
                     messages.error(request, f"Error:- {e}")
                     return redirect(fullurl)
+
+
+class PatientDetailView(TemplateView):
+    def get_context_data(self, **kwargs):
+        try:
+            context = TemplateLayout.init(self , super().get_context_data(**kwargs))
+            context["page_title"] = 'Patient Detail' 
+
+            pk = self.kwargs.get('pk')
+
+            if pk is None:
+                messages.error(self.request, 'Please provide correct id')
+                return redirect('patient_list')
+
+
+            userDetail = (
+                User.objects
+                .select_related("patient_user")   # safe now, OneToOneField hai
+                .prefetch_related("patient_user__appointment_patient__payment_appointment")
+                .get(pk=pk)
+            )
+            patientProfile =  userDetail.patient_user
+            appointments = patientProfile.appointment_patient.all()
             
+            appointment_data = [
+                {
+                    "appointment_id": app.id,
+                    "date": app.appdate,
+                    "doctor": app.doctor,
+                    "is_active": app.get_is_active_display() ,
+                    "payment": getattr(app, 'payment_appointment', None)
+                }
+                for app in appointments
+            ]
+
+
+            context["user_detail"] = userDetail
+            context["patient_profile"] = patientProfile
+            context["appointments"] = appointment_data
+
+            # print(context["appointments"] )
+            return context
+        except Exception as e :
+            # print(traceback.format_exc(e))
+            print(e)
+
+        
 
 ## add the appointment
 class AddAppointmentView(TemplateView):
@@ -228,6 +318,10 @@ class CompletePaymentView(TemplateView):
         context = TemplateLayout.init(self , super().get_context_data(**kwargs))
         context["BASE_URL"] = settings.BASE_URL 
         context["page_title"] = 'Complete Payment' 
+
+        appointment =  self.request.GET.get('appointment')
+        context['appointment_id'] = appointment
+
         return context
 
 
@@ -319,3 +413,74 @@ class CancelPaymentView(TemplateView):
                 pass
 
         return context
+
+
+
+#  show the appointment here 
+
+class AllAppointmentView(TemplateView):
+
+    def get_context_data(self , **kwargs):
+        context = TemplateLayout.init(self , super().get_context_data(**kwargs))
+        context["page_title"] = 'View Appointments'
+        context["BASE_URL"] = settings.BASE_URL
+
+        return context
+
+
+class ViewAppointmentView(TemplateView):
+    def get_context_data(self, **kwargs):
+        context = TemplateLayout.init(self, super().get_context_data(**kwargs))
+        context["BASE_URL"] = settings.BASE_URL
+        context["page_title"] = "Cancel Payment"
+        return context
+
+class AppointmentDetailView(TemplateView):
+    def get_context_data(self, **kwargs):
+        context = TemplateLayout.init(self, super().get_context_data(**kwargs))
+        context["BASE_URL"] = settings.BASE_URL
+        context["page_title"] = "Cancel Payment"
+
+        pk =  self.kwargs.get('pk')
+
+        appointment  = Apointment.objects.select_related(
+                'doctor',
+                'patient__patient',
+            ).prefetch_related(
+                "payment_appointment"
+            ).get(id=pk)
+        
+        
+        
+        patient = appointment.patient
+        user = appointment.patient.patient
+        doctor = appointment.doctor
+
+        payment_history = getattr(appointment, "payment_appointment", None)
+
+
+        # print(f"Here {payment_history}")
+
+        context["appointment"] = appointment
+        context["patient"] = patient
+        context["user"] = user
+        context["doctor"] =  doctor
+        context["paymenthistory"] =  payment_history
+
+        return context
+    
+
+    def post(self, request, *args, **kwargs):
+        try:
+            appointment_id = request.POST.get("appointment_id")
+            appointment_status = request.POST.get("appointment_status")
+
+            appointment = get_object_or_404(Apointment, id=appointment_id)
+            appointment.is_active = appointment_status
+            appointment.save()
+
+            return redirect("view_appointment_details", pk=appointment_id)
+
+        except Exception:
+            print(traceback.format_exc())
+            return redirect("view_appointment_details", pk=self.kwargs.get("pk"))
