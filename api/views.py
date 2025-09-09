@@ -49,13 +49,16 @@ class ClinicAdminUsers(generics.ListAPIView):
         return alldoctors
 
 
-
 class DoctorView(ModelViewSet):
     serializer_class = DoctorSerializer
 
     def get_queryset(self):
         getid = self.request.GET.get('clinicid')
-        alldoctors = User.objects.filter(roles__role__name="DOCTOR").prefetch_related("doctor_profile", "roles__role")
+        alldoctors = (
+            User.objects.filter(roles__role__name="DOCTOR")
+            .select_related("doctor_profile")
+            .prefetch_related("roles__role")
+        )
 
         if getid is not None:
             alldoctors = alldoctors.filter(doctor_profile__clinic_id=getid)
@@ -126,8 +129,8 @@ class ClinicAvailableTimeSlots(generics.ListAPIView):
                 });
     
         try:
-            getuser =  User.objects.get(id=doctor)
-            getdoctor =  DoctorProfile.objects.get(user=getuser)
+            getuser =  User.objects.prefetch_related('doctor_profile').get(id=doctor)
+            getdoctor =  getuser.doctor_profile
             
             if getdoctor.clinic_id != int(clinicid):
                 return Response({

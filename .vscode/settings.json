@@ -2,7 +2,7 @@
   "editor.wordWrap": "off",
   "editor.formatOnSave": true,
   "files.trimFinalNewlines": true,
-  "diffEditor.ignoreTrimWhitespace": false,
+  "diffEditor.ignoreTrimWhitespace": true,
   "cSpell.language": "en",
   "search.exclude": {
     "**/.venv": true,

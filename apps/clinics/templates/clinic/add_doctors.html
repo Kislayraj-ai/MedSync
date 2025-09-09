@@ -82,26 +82,26 @@
                 <div class="col-md-6">
                     <label for="role" class="form-label">Role</label>
                     <select class="form-select" id="role" name="role" required>
-                    {% comment %} <option value="1">Admin</option> {% endcomment %}
-                    <option value="2" selected>Doctor</option>
-                    {% comment %} <option value="3">Patient</option> {% endcomment %}
+                        <option selected>Choose Role</option>
+                        <option value="1">Admin</option>
+                        <option value="2">Doctor</option>
                     </select>
                 </div>
 
                 <div class="col-md-6">
-                    <label for="specialization" class="form-label">Specialization</label>
+                    <label for="specialization" class="form-label">Specialization (Note:- Only for doctor profile)</label>
                     <input type="text" class="form-control" id="specialization" name="specialization" placeholder="e.g. Cardiologist">
                 </div>
 
 
                 <div class="col-md-6">
-                    <label for="experience" class="form-label">Experience (Years)</label>
+                    <label for="experience" class="form-label">Experience (Years)(Note:- Only for doctor profile)</label>
                     <input type="number" class="form-control" id="experience" name="experience" min="0" placeholder="5">
                 </div>
 
 
                 <div class="col-md-6">
-                    <label for="fees" class="form-label">Fees</label>
+                    <label for="fees" class="form-label">Fees (Note:- Only for doctor profile)</label>
                     <div class="input-group">
                         <span class="input-group-text" id="fees-addon">Rs</span>
                         <input type="number" step="0.01" class="form-control" id="fees" name="fees" placeholder="500.00">
@@ -110,7 +110,7 @@
 
                 <div class="col-md-6">
                     <label for="clinic" class="form-label">Clinic</label>
-                    <select class="form-select" id="clinic" name="clinic">
+                    <select class="form-select" id="clinic" name="clinic" required>
                     {% for clinic in clinics %}
                     <option value="{{ clinic.id }}">{{ clinic.name }}</option>
                     {% endfor %}
@@ -125,7 +125,7 @@
             <!-- Actions -->
             <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top">
               <a  href="{% url "view_clinic" %}" class="btn btn-outline-secondary btn-soft">Cancel</a>
-              <button type="submit" class="btn btn-primary btn-soft">Save Doctor</button>
+              <button type="submit" class="btn btn-primary btn-soft">Save Profile</button>
             </div>
 
           </form>

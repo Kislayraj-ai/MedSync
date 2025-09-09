@@ -22,17 +22,17 @@
           <!-- Header -->
           <div class="d-flex align-items-center justify-content-between mb-4">
             <h3 class="section-title mb-0">{{ page_title }}</h3>
-            <a href="{% url 'add_doctors'  %}" class="btn btn-outline-secondary">Add Doctors</a>
+            <a href="{% url 'add_clinic_user'  %}" class="btn btn-outline-secondary">Add Clinic Users</a>
           </div>
 
                 {% for msg in messages %}
-                {% if msg.tags == "success" %}
-                    <div class="alert alert-success">
-                {% elif msg.tags == "error" %}
-                    <div class="alert alert-danger">
-                {% else %}
-                    <div class="alert alert-info">
-                {% endif %}
+                    {% if msg.tags == "success" %}
+                        <div class="alert alert-success">
+                    {% elif msg.tags == "error" %}
+                        <div class="alert alert-danger">
+                    {% else %}
+                        <div class="alert alert-info">
+                    {% endif %}
                     {{ msg }}
                     </div>
                 {% endfor %}
@@ -45,7 +45,7 @@
                                         <th>UserName</th>
                                         <th>FullName</th>
                                         <th>Email</th>
-                                        <th>Phone</th>
+                                        <th>Role</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -78,7 +78,7 @@
 
             ajax: { 
                 type : 'GET' ,
-                url: `${GET_BASE_URL}/api/v1/doctors`,
+                url: `${GET_BASE_URL}/api/v1/get-clinic-users/`,
                 dataSrc: "" 
             },
             columns: [
@@ -96,7 +96,11 @@
                     }
                 },
                 { data: "email" },
-                { data: "email" },
+                { data: "roles" ,
+                    render:(data, type,row)=>{
+                        return data[0].role.name
+                    }
+                },
                 { 
                     data: "id",
                     render: function(id) {

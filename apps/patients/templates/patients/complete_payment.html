@@ -14,6 +14,18 @@
 {% block content %}
 <div class="container mt-4">
     <h2>{{ page_title }}</h2>
+    
+                {% for msg in messages %}
+                {% if msg.tags == "success" %}
+                    <div class="alert alert-success">
+                {% elif msg.tags == "error" %}
+                    <div class="alert alert-danger">
+                {% else %}
+                    <div class="alert alert-info">
+                {% endif %}
+                    {{ msg }}
+                    </div>
+                {% endfor %}
 
     <div class="form-group mb-3">
         <label for="patient_select">Select Patient</label>
@@ -40,9 +52,12 @@ $(document).ready(function() {
     $('#patient_select').select2();
 
       let GET_BASE_URL = "{{ BASE_URL }}";
+      let appointment_id = "{{ appointment_id|default:0 }}" ;
+        appointment_id = parseInt(appointment_id) || 0;
+       // console.log("getuseriod " , userid , "{{ userid }}")
 
         $('#patient_select').select2({
-            placeholder : 'Choose Patient' ,
+            // placeholder : 'Choose Patient' ,
             width: '100%' ,
         })
 
@@ -52,29 +67,55 @@ $(document).ready(function() {
                 url : `${GET_BASE_URL}/api/v1/patients` ,
                 type : "GET" ,
                 success : (data) =>{
-                    console.log(data)
-                    
-                    $('#patient_select').append(
-                            new Option('Choose Patient', '', false, false)
-                    )
 
-                    data.forEach((item)=>{
-                        $('#patient_select').append(
-                            new Option(`${item.firstname} ${item.lastname}`, parseInt(item.userid), false, false)
-                        )
-                    })
+                    $('#patient_select').empty().append(new Option('Choose Patient', '', false, false));
 
-                    // on change the patient
+
+                    if (appointment_id > 0) {
+
+                            data.forEach((item) => {
+                                let appointment = item.appointment_patient.find(app => parseInt(app.id) === appointment_id);
+                                if (appointment) {
+                                    $('#patient_select').append(
+                                        new Option(`${item.firstname} ${item.lastname}`, item.userid, true, true)
+                                    );
+                                }
+                            });
+
+                            
+                    } else {
+                        
+                        data.forEach((item) => {
+                            $('#patient_select').append(
+                                new Option(`${item.firstname} ${item.lastname}`, item.userid, false, false)
+                            );
+                        });
+                    }
+
+
                     $('#patient_select').on('change' , (e)=>{
-                        let patientId =  $(e.target).val()
+                        let patientId =  $(e.target).val();
+                        //console.log("getpatientid " , patientId)
 
                         data.forEach((item)=>{
                             let userId = parseInt(item.userid);
 
                             if (userId === parseInt(patientId)) {
-                                let appointment = item.appointment_patient[0];
+                                let appointment = {} 
                                 
-                                console.log(appointment)
+                                if (appointment_id > 0){
+                                    appointment = item.appointment_patient.find(app => parseInt(app.id) === appointment_id);
+                                }else{
+                                    appointment = item.appointment_patient.reduce((latest, current) => {
+                                        return parseInt(current.id) > parseInt(latest.id) ? current : latest;
+                                    }, item.appointment_patient[0]);
+                                }
+
+                                        
+                                // console.log("here " , appointment , userId  , (patientId))
+                                if (!appointment) return;
+
+
                                 if (parseInt(appointment.status) === 1){
                                     $('#pending_amount').val(0);
                                     $("#continue_btn").prop('disabled', true);
@@ -103,6 +144,9 @@ $(document).ready(function() {
 
                         })
                     })
+
+                    $('#patient_select').trigger('change');
+                
 
                 }
             })

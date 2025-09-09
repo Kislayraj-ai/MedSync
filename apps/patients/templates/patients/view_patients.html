@@ -46,7 +46,6 @@
                                         <th>Email</th>
                                         <th>DOB</th>
                                         <th>Age</th>
-                                        <th>Doctor</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -93,17 +92,17 @@
                 { data: "email" },
                 { data: "dob" },
                 { data: "p_age" },
-                { data: "doctorfullname" },
+
                   { 
                     data: "userid",
                     render: function(data , type, row) {
                         return `
-                            <a  href="/patients/edit-patient/${parseInt(row.userid)}/" class="btn btn-sm btn-primary">Edit</a>`;
+                            <a  href="/patients/patient-detail/${parseInt(row.userid)}/" 
+                            class="btn btn-sm btn-info">View</a>`;
                     }
                 }
             ]
         });
-
     });
     </script>
 {% endblock %}

@@ -45,20 +45,16 @@ class ClinicTime(models.Model):
 
 
 class Roles(models.Model):
-    ADMIN = "ADMIN"
-    DOCTOR = "DOCTOR"
-    PATIENT = "PATIENT"
+    class RoleChoices(models.TextChoices):
+        ADMIN = "ADMIN", "Admin"
+        DOCTOR = "DOCTOR", "Doctor"
+        PATIENT = "PATIENT", "Patient"
 
-    ROLE_CHOICES = [
-        (ADMIN, "Admin"),
-        (DOCTOR, "Doctor"),
-        (PATIENT, "Patient"),
-    ]
-
-    name = models.CharField(max_length=20, choices=ROLE_CHOICES, unique=True)
+    name = models.CharField(max_length=20, choices=RoleChoices.choices, unique=True)
 
     def __str__(self):
-        return self.name
+        return self.get_name_display()
+
 
 ## make the role for
 class UserRole(models.Model):
@@ -75,7 +71,7 @@ class UserRole(models.Model):
         return F"{self.username} ({self.role})"
     
 class DoctorProfile(models.Model):
-    user  =  models.ForeignKey(User ,  on_delete=models.CASCADE , related_name="doctor_profile")
+    user  =  models.OneToOneField(User ,  on_delete=models.CASCADE , related_name="doctor_profile")
     specialization = models.CharField(max_length=100)
     experience = models.PositiveIntegerField(help_text="Years of experience")
     fees = models.DecimalField(max_digits=8, decimal_places=2 , null=True , blank=True)
@@ -84,3 +80,12 @@ class DoctorProfile(models.Model):
 
     def __str__(self):
         return f"Dr. {self.user.get_full_name()}"
+    
+
+class AdminUserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="admin_profile")
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name="admins")
+    # designation = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"Admin {self.user.get_full_name()} - {self.clinic.name}"

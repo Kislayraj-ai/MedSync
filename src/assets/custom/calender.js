@@ -35,7 +35,6 @@
               end: fetchInfo.endStr ,
             } ,
           success: (data) => {
-            // console.log("getdata", data);
 
             let events = [];
 
@@ -57,12 +56,13 @@
                   title: patient.firstname ,
                   start: start,
                   end: endTime.toISOString(),
-                  backgroundColor:  statusColors[appt.status] || "lightblue",
+                  backgroundColor:  statusColors[appt.is_active] || "lightblue",
                   extendedProps: {
                     appointment : appt.id ,
                     patientid : patient.patient ,
                     patient: patient.firstname + " " + patient.lastname,
-                    status: appt.status
+                    status: appt.status ,
+                    isactive : appt.is_active
                   }
                 });
               });
@@ -78,13 +78,17 @@
           info.el.style.position = 'relative';
           info.el.style.overflow = 'hidden';
 
-          let currentDate =  new Date();
-          let getEventDate =  info.event.startStr
-          // console.log("curentdate " , new Date(getEventDate).toISOString().slice(0 , 10), info)
-          
+          let today = new Date();
+          let day = today.getDay();
+          let diff = today.getDate() - day + (day === 0 ? -6 : 1); 
+          let mondayOfWeek = new Date(today.setDate(diff)); 
+          mondayOfWeek.setHours(0,0,0,0);
 
-            if(getEventDate >= currentDate.toISOString().slice(0 , 10))
-            {
+          let eventDate = new Date(info.event.start);
+
+          if (eventDate > mondayOfWeek) {
+              // info.el.style.pointerEvents = 'none' ;
+              // info.el.style.opacity = '0.5'; 
 
 
             let getAppointmentId = info.event.extendedProps.appointment;
@@ -96,8 +100,8 @@
             wrapper.style.gap = '0.2rem';
 
             
-            // console.log( )
-            if ((parseInt(info.event.extendedProps.status) == 0 ) || parseInt(info.event.extendedProps.status) == 3  ){
+           // console.log("herethis is " , parseInt(info.event.extendedProps.isactive) )
+            if ((parseInt(info.event.extendedProps.isactive) == 0 ) || parseInt(info.event.extendedProps.isactive) == 3  ){
 
       
             const editBtn = document.createElement('button');
@@ -127,7 +131,7 @@
             cancelBtn.addEventListener('click', (e) => {
               e.stopPropagation();
               $.ajax({
-                url : `${GET_BASE_URL}/api/v1/get-appointment-status` ,
+                url : `${GET_BASE_URL}/api/v1/get-appointment` ,
                 tpe : "GET" ,
                 data : {
                   appointment : getAppointmentId
@@ -210,10 +214,14 @@
           
           if(getEventDate >= currentDate){
               let clinicID =  $(document).find('#clinic').val();
-              let doctorId =  $(document).find('#doctor').val()
+              let doctorId =  $(document).find('#doctor').val();
+              let patientSelect =  $(document).find('#patient').val();
+
               $('#slotModal').data('dateslot' , info.dateStr).modal('show');
               $('#slotModal').data('clinic' , clinicID);
-              $('#slotModal').data('doctor' , doctorId)
+              $('#slotModal').data('doctor' , doctorId);
+              $('#slotModal').data('patientSelect' , patientSelect);
+              
 
 
               $('#slotModal').on('click' , '#confirmSlot' , (e)=>{
@@ -221,8 +229,9 @@
 
                   let clinicid =  $("#slotModal").data("clinic");
                   let doctor =  $("#slotModal").data("doctor");
+                  
 
-                  if(!clinicid){
+                  if(!clinicid || parseInt(clinicid) <= 0){
                     $('#slotModal').modal('hide');
                       Swal.fire({
                         title: 'Error!',
@@ -234,23 +243,35 @@
                   }
 
 
-                  if (!doctor){
-                    $('#slotModal').modal('hide');
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'Please choose doctor',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    })
+                  if (!doctor || parseInt(doctor) <= 0){
+                      $('#slotModal').modal('hide');
+                      Swal.fire({
+                          title: 'Error!',
+                          text: 'Please choose doctor',
+                          icon: 'error',
+                          confirmButtonText: 'OK'
+                      })
 
-                    return
+                    return ;
                   }
 
                   let getdate =  date.split('T')[0]
                   let gettime =  date.split('T')[1].slice(0,5)
 
+                  let params = new URLSearchParams();
 
-                  window.location.href = `/patients/add-patient-appointment/?date=${getdate}&time=${gettime}&clinicid=${clinicid}&doctor=${doctor}`
+                  if (patientSelect && parseInt(patientSelect) > 0){
+                      params.append("patient", patientSelect);
+                  }
+
+                  // console.log(patientSelect)
+                  params.append("date", getdate);
+                  params.append("time", gettime);params.append("clinicid", clinicid);
+                  params.append("doctor", doctor);
+                  // console.log("here " , params , patientSelect);
+                  // return
+
+                  window.location.href = `/patients/add-patient-appointment/?${params.toString()}`
 
               });
                         

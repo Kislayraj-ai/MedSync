@@ -1,0 +1,153 @@
+{% extends layout_path %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block vendor_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'js/DataTables/datatables.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'assets/css/common.css' %}">
+  {% comment %} <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet"> {% endcomment %}
+
+  <style>
+    .bg-darkgreen {
+      background-color: #006400 !important;
+      color: #fff;
+  }
+
+  </style>
+{% endblock vendor_css %}
+
+{% block content %}
+
+<div class="container py-4">
+
+  <!-- Header with status dropdown -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">
+      <i class="bx bx-calendar-check me-2 text-primary"></i> Appointment Details
+    </h3>
+
+      <form method="post">
+        {% csrf_token %}
+        
+        <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+
+        <div class="mb-3">
+          <select class="form-select shadow-sm" name="appointment_status" style="min-width: 180px;">
+            <option value="0" {% if appointment.is_active == "0" %}selected{% endif %}>Active</option>
+            <option value="1" {% if appointment.is_active == "1" %}selected{% endif %}>Cancelled</option>
+            <option value="2" {% if appointment.is_active == "2" %}selected{% endif %}>Completed</option>
+            <option value="3" {% if appointment.is_active == "3" %}selected{% endif %}>Pending</option>
+          </select>
+        </div>
+
+        <!-- Submit button -->
+        <button type="submit" class="btn btn-primary shadow-sm">Update Status</button>
+      </form>
+
+
+
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Patient Info Card -->
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-light d-flex align-items-center">
+          <i class="bx bx-user-circle fs-4 me-2 text-secondary"></i>
+          <h5 class="mb-0">Patient Information</h5>
+        </div>
+        <div class="card-body">
+          <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+          <p><strong>Contact:</strong> {% if user.phone %} user.phone {% else %}  N/A {% endif %} </p>
+          <p><strong>Email:</strong> {{ user.email }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointment Info Card -->
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-light d-flex align-items-center">
+          <i class="bx bx-time-five fs-4 me-2 text-secondary"></i>
+          <h5 class="mb-0">Appointment Details</h5>
+        </div>
+        <div class="card-body">
+          <p><strong>Date:</strong> {{ appointment.appdate }}</p>
+          <p><strong>Time:</strong> {{ appointment.apptime }}</p>
+          <p><strong>Doctor:</strong>{{ doctor.first_name }} {{ doctor.last_name }}</p>
+          <p>
+            <strong>Appointment Status:</strong>
+            <span class="badge 
+              {% if appointment.is_active == "0" %} bg-success text-dark
+              {% elif appointment.is_active == "1" %} bg-danger
+              {% elif appointment.is_active == "2" %} bg-darkgreen
+              {% else %} bg-info
+              {% endif %}">
+              {{ appointment.get_is_active_display }}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<div class="card shadow-sm border-0 rounded-3 mt-4">
+  <div class="card-header bg-light d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center">
+      <i class="bx bx-credit-card fs-4 me-2 text-secondary"></i>
+      <h5 class="mb-0">Payment Details</h5>
+    </div>
+    {% if paymenthistory %}
+    <div>
+      <a href="" 
+         class="btn btn-sm btn-outline-primary me-2">
+        <i class="bx bxs-file-pdf me-1"></i> PDF
+      </a>
+      <a href="" 
+         class="btn btn-sm btn-outline-secondary">
+        <i class="bx bx-image me-1"></i> Image
+      </a>
+    </div>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    {% if paymenthistory %}
+      <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+        <div>
+          <h6 class="text-muted mb-1">Amount</h6>
+          <p class="fs-5 fw-semibold mb-2">₹ {{ paymenthistory.amount }}</p>
+
+          <h6 class="text-muted mb-1">Date</h6>
+          <p class="mb-0">{{ paymenthistory.created_at|date:"M d, Y H:i" }}</p>
+        </div>
+
+        <div class="text-md-end mt-3 mt-md-0">
+          <h6 class="text-muted mb-1">Status</h6>
+          <span class="badge px-3 py-2 fs-6
+            {% if paymenthistory.status == '1' %} bg-success
+            {% elif paymenthistory.status == '0' %} bg-warning text-dark
+            {% elif paymenthistory.status == '2' %} bg-primary
+            {% else %} bg-danger
+            {% endif %}">
+            {{ paymenthistory.get_status_display }}
+          </span>
+        </div>
+      </div>
+    {% else %}
+      <div class="text-center text-muted py-4">
+        <i class="bx bx-info-circle fs-3 d-block mb-2"></i>
+        <p class="mb-0">No Payment Record Found</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+
+</div>
+
+{% endblock %}
