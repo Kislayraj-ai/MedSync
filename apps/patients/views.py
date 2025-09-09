@@ -87,6 +87,8 @@ class PatientAdd(TemplateView):
                                 ).lower()
                                 
 
+                            user.save()
+
                             dob_str =  request.POST.get('dob')
                             dob = datetime.strptime(dob_str, "%Y-%m-%d").date() 
 
@@ -102,6 +104,7 @@ class PatientAdd(TemplateView):
                                 calculated_age -= 1
                             
                             profile.p_age = calculated_age
+                            profile.save()
 
                             ## save the appointment for the patient
                             doctorid = request.POST.get('doctor')
@@ -121,6 +124,7 @@ class PatientAdd(TemplateView):
                             app.apptime = apptime_obj
                             app.status =  0
                             app.is_active =  0
+                            app.save()
 
                             app.save()
 
@@ -133,9 +137,7 @@ class PatientAdd(TemplateView):
                             payment.appTime = apptime_obj
                             
                             
-                    
-                            user.save()
-                            profile.save()
+                            
                             payment.save()
                         
 
@@ -193,70 +195,72 @@ class PatientEdit(TemplateView):
 
     def post(self, request , *args, **kwargs):
 
-        # user_id
-        user_id = request.POST.get("user_id")
-        user = get_object_or_404(User, pk=user_id)
+            # user_id
+            user_id = request.POST.get("user_id")
+            user = get_object_or_404(User, pk=user_id)
 
-        appointment_id = request.POST.get("appointment_id")
-        url =  reverse("patient_edit")
-        query_string =  f"?appointment={appointment_id}"
-        fullurl =  f"{url}{query_string}"
-        
-        profile = user.patient_user.first()
+            appointment_id = request.POST.get("appointment_id")
+            url =  reverse("patient_edit")
+            query_string =  f"?appointment={appointment_id}"
+            fullurl =  f"{url}{query_string}"
+            
+            profile = user.patient_user
 
-        if not user_id :
-                messages.warning(request, "Valid Patient id is missing!!")
-                return redirect(fullurl)
+            if not user_id :
+                    messages.warning(request, "Valid Patient id is missing!!")
+                    return redirect(fullurl)
 
-        if request.method == "POST" :
+            if request.method == "POST" :
 
-            try:
-                user_form =  UserForm(request.POST , instance=user)
-                profile_form =  PatientProfileForm(request.POST , request.FILES , instance=profile)
+                try:
+                    user_form =  UserForm(request.POST , instance=user)
+                    profile_form =  PatientProfileForm(request.POST , request.FILES , instance=profile)
 
-                if user_form.is_valid() and profile_form.is_valid():
+                    if user_form.is_valid() and profile_form.is_valid():
 
-                    with transaction.atomic():
+                        with transaction.atomic():
 
-                        user =  user_form.save(commit=False)
-                        user.username = (request.POST.get('first_name', '') + request.POST.get('last_name', '')).lower()
+                            user =  user_form.save(commit=False)
+                            user.username = (request.POST.get('first_name', '') + request.POST.get('last_name', '')).lower()
 
-                        dob_str =  request.POST.get('dob')
-                        dob = datetime.strptime(dob_str, "%Y-%m-%d").date()
+                            user.save()
 
-                        profile_form.patient = user
-                        profile_form.doctor_id = request.POST.get('doctor')
+                            dob_str =  request.POST.get('dob')
+                            dob = datetime.strptime(dob_str, "%Y-%m-%d").date()
 
-                        today =  date.today()
-                        calculate_age  = today.year -  dob.year
+                            profile_form.patient = user
+                            profile_form.doctor_id = request.POST.get('doctor')
 
-                        if (dob.month , dob.day) < (today.month , today.day):
-                            calculate_age -= 1
+                            today =  date.today()
+                            calculate_age  = today.year -  dob.year
 
-                        profile_form.age = calculate_age
+                            if (dob.month , dob.day) < (today.month , today.day):
+                                calculate_age -= 1
 
-                        #! save the appointment here
-                        apptime = request.POST.get('apptime')
-                        apptime_obj = datetime.strptime(apptime, "%H:%M").time()
-                        app  = Apointment.objects.get(id=appointment_id)
-                        # app.doctor_id =  doctorid
-                        # app.patient = profile
-                        # app.appdate = appdate_obj
-                        app.apptime = apptime_obj
-                        # app.status =  0
-                        # app.is_active =  0
+                            profile_form.age = calculate_age
+                            profile_form.save()
 
 
-                        user.save()
-                        profile_form.save()
-                        app.save()
+                            #! save the appointment here
+                            apptime = request.POST.get('apptime')
+                            apptime_obj = datetime.strptime(apptime, "%H:%M").time()
+                            app  = Apointment.objects.get(id=appointment_id)
+                            # app.doctor_id =  doctorid
+                            # app.patient = profile
+                            # app.appdate = appdate_obj
+                            app.apptime = apptime_obj
+                            # app.status =  0
+                            # app.is_active =  0
 
-                        messages.success(request, "Patient updated successfully")
+                            app.save()
+
+                            messages.success(request, "Patient updated successfully")
+                            return redirect(fullurl)
+
+                except Exception as e :
+                        messages.error(request, f"Error:- {e}")
                         return redirect(fullurl)
 
-            except Exception as e :
-                    messages.error(request, f"Error:- {e}")
-                    return redirect(fullurl)
 
 
 class PatientDetailView(TemplateView):

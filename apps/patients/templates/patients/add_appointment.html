@@ -191,7 +191,7 @@
         })
         
 
-            const fetchPatients = (clinicid=0) =>{
+          const fetchPatients = (clinicid=0) =>{
             $.ajax({
                 url : `${GET_BASE_URL}/api/v1/patients` ,
                   type : "GET" ,
@@ -245,7 +245,7 @@
                 url : `${GET_BASE_URL}/api/v1/clinics` ,
                 type : "GET" ,
                 success : (data) =>{
-                    //console.log(data)
+
                   
                   $('#clinic').empty();
 

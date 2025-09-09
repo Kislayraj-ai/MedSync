@@ -48,22 +48,20 @@
       </a>
       <ul class="menu-sub">
 
-        {% comment %} <li class="menu-item {% if '/add-clinic/' in request.path %}active{% endif %}">
-          <a  href="{% url 'add_clinic'  %}" class="menu-link">
-            <div class="text-truncate" data-i18n="Without navbar">Add Clinic</div>
-          </a>
-        </li> {% endcomment %}
 
+      {% if request.user.is_superuser%}
         <li class="menu-item {% if '/view-clinic/' in request.path %}active{% endif %}">
           <a  href="{% url 'view_clinic'  %}" class="menu-link">
             <div class="text-truncate" data-i18n="Without navbar">View Clinics</div>
           </a>
         </li>
+      
+      {% endif %}
 
 
         <li class="menu-item {% if '/view-clinic-user/' in request.path %}active{% endif %}">
           <a  href="{% url 'view_clinic_user'  %}" class="menu-link">
-            <div class="text-truncate" data-i18n="Without navbar">View Doctors</div>
+            <div class="text-truncate" data-i18n="Without navbar">View Clinic User/Doctor</div>
           </a>
         </li>
         

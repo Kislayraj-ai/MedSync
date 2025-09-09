@@ -164,10 +164,9 @@
         let doctorid=  "{{appointment.doctor.id}}";
         let appdate=  "{{ appointment.appdate|date:"Y-m-d"  }}";
         let apptime = "{{ appointment.apptime|time:"H:i"  }}" ;
-        let clinicid=  "{{appointment.doctor.doctor_profile.first.clinic_id}}" ;
-        // console.log("getclinicid " , clinicid)
-        {% comment %} console.log("Getappdate" , appdate ) {% endcomment %}
-      
+        //.doctor.doctor_profile.first.clinic_id
+        let clinicid=  "{{appointment.doctor.doctor_profile.clinic_id}}" ;
+        //console.log("getclinicid " , clinicid)
 
         $('#apptime').select2({
             placeholder : 'Choose app time' ,
