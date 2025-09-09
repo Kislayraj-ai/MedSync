@@ -22,7 +22,7 @@
                 <!-- Header -->
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <h3 class="section-title mb-0">{{ page_title }}</h3>
-                    <a href="{% url 'add_appointment'  %}" class="btn btn-outline-secondary">Add Patient</a>
+                    <a href="{% url 'add_appointment'  %}" class="btn btn-outline-secondary">Add Appointment</a>
                 </div>
 
                 {% for msg in messages %}
@@ -43,11 +43,12 @@
                                 <thead>
                                     <tr>
                                         <th>FullName</th>
-                                        <th>Email</th>
-                                        <th>DOB</th>
-                                        <th>Age</th>
                                         <th>Doctor</th>
-                                        <th>Action</th>
+                                        <th>App Date</th>
+                                        <th>App Time</th>
+                                        <th>App Status</th>
+                                        <th>Payment Status</th>
+                                        <th>View</th>
                                     </tr>
                                 </thead>
 
@@ -78,27 +79,34 @@
         $('#clinicTable').DataTable({
             ajax: { 
                 type : 'GET',
-                url: `${GET_BASE_URL}/api/v1/patients`,
+                url : `${GET_BASE_URL}/api/v1/get-appointment` ,
                 dataSrc: function (json) {
-                    //console.log("Full Response:", json);
+                   // console.log("Full Response:", json);
                     return json;
                 }
             },
             columns: [
-                { data: "firstname" ,
+                { data: "patientFullname" ,
                     render :(data, type,row) =>{
-                        return `${row.firstname} ${row.lastname}`
+                        return data
+                       // return `${row.firstname} ${row.lastname}`
                     }
                 },
-                { data: "email" },
-                { data: "dob" },
-                { data: "p_age" },
                 { data: "doctorfullname" },
-                  { 
-                    data: "userid",
+                { data: "appdate"},
+                { data: "apptime",
+                    render :(data, type,row) =>{
+                        let full = data.split(':')
+                        return `${full[0]}:${full[1]}`
+                    } 
+                },
+                { data: "status_display" },
+                { data: "active_status_display" },
+                { 
+                    data: "id",
                     render: function(data , type, row) {
                         return `
-                            <a  href="/patients/edit-patient/${parseInt(row.userid)}/" class="btn btn-sm btn-primary">Edit</a>`;
+                            <a  href="/patients/appointment-details/${data}/" class="btn btn-sm btn-outline-info">View</a>`;
                     }
                 }
             ]

@@ -28,7 +28,7 @@
           <h4 class="mb-1">Welcome to {% get_theme_variables 'template_name' %}! 👋</h4>
           <p class="mb-6">Please sign-in to your account and start the adventure</p>
 
-          <form id="formAuthentication" class="mb-6" action="{% url 'index' %}">
+          <form id="formAuthentication" class="mb-6" method="POST">
             {% csrf_token %}
             <div class="mb-6">
               <label for="email" class="form-label">Email or Username</label>
@@ -59,15 +59,14 @@
             </div>
           </form>
 
-          <p class="text-center">
+          {% comment %} <p class="text-center">
             <span>New on our platform?</span>
             <a href="{% url 'auth-register-basic' %}">
               <span>Create an account</span>
             </a>
-          </p>
+          </p> {% endcomment %}
         </div>
       </div>
-      <!-- /Login -->
     </div>
   </div>
 </div>

@@ -159,6 +159,37 @@
             width: '100%' ,
             dropdownParent : $('#appointmentcalendercard') 
         })
+
+        $('#patient').select2({
+            placeholder : 'Choose Patient' ,
+            width: '100%' ,
+            dropdownParent: $('.card') 
+        })
+        
+
+          const fetchPatients = (clinicid=0) =>{
+            $.ajax({
+                url : `${GET_BASE_URL}/api/v1/patients` ,
+                  type : "GET" ,
+                  data :{
+                    clinicid
+                  },
+                  success : (data) =>{
+
+                      $('#patient').append(
+                              new Option('Choose Patient', '', false, false)
+                      )
+
+                      data.forEach((item)=>{
+                        $('#patient').append(
+                            new Option(`${item.firstname} ${item.lastname}`, item.userid, false, false)
+                        )
+                    })
+                  }
+              })
+          }
+
+       // fetchPatients()
         
         const fetchDoctors = (getclinicid) =>{
             $.ajax({
@@ -190,7 +221,7 @@
                 url : `${GET_BASE_URL}/api/v1/clinics` ,
                 type : "GET" ,
                 success : (data) =>{
-                    //console.log(data)
+
                   
                   $('#clinic').empty();
 

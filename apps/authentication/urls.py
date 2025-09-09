@@ -1,20 +1,26 @@
 from django.urls import path
-from .views import AuthView
+from .views import AuthView , logoutView
 
 
 urlpatterns = [
     path(
-        "auth/login/",
+        "login/",
         AuthView.as_view(template_name="auth_login_basic.html"),
-        name="auth-login-basic",
+        name="auth_login_basic",
     ),
+
     path(
-        "auth/register/",
+        "logout/",logoutView,
+        name="auth_logout_basic",
+    ),
+
+    path(
+        "register/",
         AuthView.as_view(template_name="auth_register_basic.html"),
         name="auth-register-basic",
     ),
     path(
-        "auth/forgot_password/",
+        "forgot_password/",
         AuthView.as_view(template_name="auth_forgot_password_basic.html"),
         name="auth-forgot-password-basic",
     ),

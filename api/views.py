@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
-from apps.clinics.models import Clinic , User , ClinicTime , DoctorProfile
-from apps.clinics.serializesrs import ClinicSerializer , DoctorSerializer ,PatientSerializer , ClinicTimeSlotsSerializer , AppointmentSerializer
+from apps.clinics.models import Clinic , User , ClinicTime , DoctorProfile , AdminUserProfile
+from apps.clinics.serializesrs import ClinicSerializer , DoctorSerializer ,PatientSerializer ,\
+    ClinicTimeSlotsSerializer , AppointmentSerializer , ClinicUserSerializer
 from rest_framework import generics , status
 from apps.patients.models  import PatientProfile, Apointment
 from rest_framework.response import Response
@@ -12,13 +13,40 @@ from requests.auth import HTTPBasicAuth
 import requests
 import json
 import uuid
+from .utility import get_user_clinic_ids
 # Create your views here.
 
 
 class ClinicListSet(ModelViewSet):
-    queryset = Clinic.objects.all()
     serializer_class = ClinicSerializer
 
+    def get_queryset(self):
+        curruser = self.request.user
+        clinic_ids = []
+
+        if curruser.is_superuser:
+            return Clinic.objects.all()
+
+        else:
+            clinic_ids = get_user_clinic_ids(curruser , AdminUserProfile , DoctorProfile)
+
+        return Clinic.objects.filter(id__in=clinic_ids)
+
+
+class ClinicAdminUsers(generics.ListAPIView):
+    serializer_class = ClinicUserSerializer
+
+    def get_queryset(self):
+        getid = self.request.GET.get('clinicid')
+        alldoctors = (
+            User.objects.filter(roles__role__name__in=["ADMIN" , "DOCTOR"] )
+            .prefetch_related("roles__role")
+        )
+
+        if getid is not None:
+            alldoctors = alldoctors.filter(doctor_profile__clinic_id=getid)
+
+        return alldoctors
 
 
 
@@ -35,30 +63,43 @@ class DoctorView(ModelViewSet):
         return alldoctors
 
 
+
+
 ## for patients
 
 class PatientListView(generics.ListAPIView):
-    queryset = PatientProfile.objects.all()
+    # queryset = PatientProfile.objects.all()
     serializer_class =  PatientSerializer
+    
+    def get_queryset(self):
+        qs = PatientProfile.objects.all()
+        curruser = self.request.user
 
-    def list(self, request, *args, **kwargs):
-        start = request.GET.get("start")
-        end = request.GET.get("end")
-        qs =  self.get_queryset()
+        # get clinic IDs for current user
+        clinic_ids = get_user_clinic_ids(curruser , AdminUserProfile , DoctorProfile)
+        if clinic_ids is not None:
+            qs = qs.filter(
+                appointment_patient__doctor__doctor_profile__clinic_id__in=clinic_ids
+            )
+
+        # apply filters
+        start = self.request.GET.get("start")
+        end = self.request.GET.get("end")
+        clinicid = int(self.request.GET.get("clinicid", 0) or 0)
 
         if start and end:
             start_dt = datetime.fromisoformat(start)
             end_dt = datetime.fromisoformat(end)
-            print("showin the real data time" , start_dt.date(), end_dt.date())
-            qs = self.get_queryset().filter(
+            qs = qs.filter(
                 appointment_patient__appdate__range=[start_dt.date(), end_dt.date()]
-            ).distinct()
-        else:
-            qs = self.get_queryset()
+            )
 
-        serializer  =  self.get_serializer(qs,  many=True)
+        if clinicid > 0:
+            qs = qs.filter(
+                appointment_patient__doctor__doctor_profile__clinic_id=clinicid
+            )
 
-        return Response(serializer.data)
+        return qs.distinct()
 
 
 class ClinicAvailableTimeSlots(generics.ListAPIView):
@@ -157,11 +198,25 @@ class ClinicAvailableTimeSlots(generics.ListAPIView):
 
 class GetAppointmentView(generics.ListAPIView):
     # queryset = Apointment.objects.all()
+    queryset =  None
     serializer_class = AppointmentSerializer
 
     def get_queryset(self):
-        queryset = Apointment.objects.all()
-        appoinment = self.request.GET.get('appointment')
+        curruser = self.request.user
+        appoinment = self.request.GET.get('appointment' , 0)
+        clinic_ids = []
+
+        if curruser.is_superuser:
+            queryset = Apointment.objects.all()
+        else:
+            user_role = curruser.roles.first()
+            if user_role and user_role.role.id == 1:
+                clinic_ids = AdminUserProfile.objects.filter(user=curruser).values_list("clinic_id", flat=True)
+            else:
+                clinic_ids = DoctorProfile.objects.filter(user=curruser).values_list("clinic_id", flat=True)
+
+            queryset = Apointment.objects.filter(doctor__doctor_profile__clinic_id__in=clinic_ids)
+
         if int(appoinment) > 0:
             queryset =  queryset.filter(id=appoinment)
         
@@ -241,10 +296,10 @@ class CreatePaypalOrderView(APIView):
             json=payload
         )
 
-        print("===== RAW REQUEST PAYLOAD =====")
-        print(json.dumps(payload, indent=4))
-        print("===== RAW RESPONSE =====")
-        print(res.status_code, res.text)
+        # print("===== RAW REQUEST PAYLOAD =====")
+        # print(json.dumps(payload, indent=4))
+        # print("===== RAW RESPONSE =====")
+        # print(res.status_code, res.text)
 
 
 

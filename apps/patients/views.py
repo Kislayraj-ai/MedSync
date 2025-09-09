@@ -53,6 +53,8 @@ class PatientAdd(TemplateView):
                             user.username = (request.POST.get('first_name', '') + request.POST.get('last_name', '')).lower()
                             
 
+                            user.save()
+
                             dob_str =  request.POST.get('dob')
                             dob = datetime.strptime(dob_str, "%Y-%m-%d").date() 
 
@@ -66,6 +68,7 @@ class PatientAdd(TemplateView):
                                 calculated_age -= 1
                             
                             profile.p_age = calculated_age
+                            profile.save()
 
                             ## save the appointment for the patient
                             doctorid = request.POST.get('doctor')
@@ -85,22 +88,26 @@ class PatientAdd(TemplateView):
                             app.apptime = apptime_obj
                             app.status =  0
                             app.is_active =  0
+                            app.save()
 
                             # add patients here
                             payment =  PaymentHistory()
-                            payment.patient = user
+                            payment.appointment = app
+                            # payment.patient = user
                             payment.amount = doctor_profile.fees
                             payment.appDate = appdate_obj
                             payment.appTime = apptime_obj
                             
-                    
-                            user.save()
-                            profile.save()
-                            app.save()
+                            
+                            
                             payment.save()
 
                         messages.success(request, "Patient created successfully")
-                        return redirect("add_appointment")
+
+                        url = reverse('complete_payment')
+                        fullurl = f"{url}?appointment={app.id}"
+                        return redirect(fullurl)
+
                     else:
                         # print("UserForm Errors:", user_form.errors)
                         # print("ProfileForm Errors:", profile_form.errors)
@@ -114,7 +121,7 @@ class PatientAdd(TemplateView):
 
             except Exception as e :
                 messages.error(request, f"Error :- {e}")
-                return redirect("add_appointment")
+                return redirect("add_patient")
             
 
 class PatientEdit(TemplateView):
