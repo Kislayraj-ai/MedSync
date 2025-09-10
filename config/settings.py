@@ -13,6 +13,7 @@ import os
 import random
 import string
 from pathlib import Path
+from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -149,7 +150,7 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "root",
         "HOST": "localhost",
-        "PORT": "5432",  # default port for PostgreSQL
+        "PORT": "5432",
     }
 }
 
@@ -227,3 +228,27 @@ PAYPAL_MODE=os.environ.get('PAYPAL_MODE')
 PAYPAL_BASE_URL =  os.environ.get('PAYPAL_BASE_URL')
 
 # AUTH_USER_MODEL  = 'clinics.UserRole'
+
+## Rest framework
+REST_FRAMEWORK  ={
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication' ,
+        'rest_framework_simplejwt.authentication.JWTAuthentication'
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    )
+}
+
+## SIMPLE JWT
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
+    # "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+## SIMPLE JWT

@@ -79,7 +79,7 @@
         $('#clinicTable').DataTable({
             ajax: { 
                 type : 'GET',
-                url : `${GET_BASE_URL}/api/v1/get-appointment` ,
+                url : `${GET_BASE_URL}/api/v1/get-appointment/` ,
                 dataSrc: function (json) {
                    // console.log("Full Response:", json);
                     return json;
