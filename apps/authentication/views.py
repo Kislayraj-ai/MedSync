@@ -34,7 +34,6 @@ class AuthView(TemplateView):
 
         user = authenticate(request, username=username_or_email, password=password)
 
-        # print("here " , username_or_email , password , user)
 
         if not user :
             try:

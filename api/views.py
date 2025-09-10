@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
-from apps.clinics.models import Clinic , User , ClinicTime , DoctorProfile , AdminUserProfile
+from apps.clinics.models import Clinic , User , ClinicTime , DoctorProfile , AdminUserProfile 
 from apps.clinics.serializesrs import ClinicSerializer , DoctorSerializer ,PatientSerializer ,\
     ClinicTimeSlotsSerializer , AppointmentSerializer , ClinicUserSerializer
 from rest_framework import generics , status
@@ -14,11 +14,18 @@ import requests
 import json
 import uuid
 from .utility import get_user_clinic_ids
+from rest_framework.permissions import AllowAny  , IsAdminUser
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.db.models import Q
 # Create your views here.
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    permission_classes = [AllowAny]
 
 
 class ClinicListSet(ModelViewSet):
     serializer_class = ClinicSerializer
+    permission_classes = [IsAdminUser]
 
     def get_queryset(self):
         curruser = self.request.user
@@ -37,16 +44,28 @@ class ClinicAdminUsers(generics.ListAPIView):
     serializer_class = ClinicUserSerializer
 
     def get_queryset(self):
+
+        qs = User.objects.all()
+        curruser = self.request.user
         getid = self.request.GET.get('clinicid')
-        alldoctors = (
-            User.objects.filter(roles__role__name__in=["ADMIN" , "DOCTOR"] )
+
+        if not curruser.is_superuser :
+            clinic_ids = get_user_clinic_ids(curruser , AdminUserProfile , DoctorProfile)
+            if clinic_ids is not None:
+                qs = qs.filter(
+                    Q(doctor_profile__clinic_id__in=clinic_ids) |
+                    Q(admin_profile__clinic_id__in=clinic_ids)
+                )
+
+        qs = (  
+            qs.filter(roles__role__name__in=["ADMIN" , "DOCTOR"] )
             .prefetch_related("roles__role")
         )
 
         if getid is not None:
-            alldoctors = alldoctors.filter(doctor_profile__clinic_id=getid)
+            qs = qs.filter(doctor_profile__clinic_id=getid)
 
-        return alldoctors
+        return qs
 
 
 class DoctorView(ModelViewSet):
@@ -110,17 +129,18 @@ class ClinicAvailableTimeSlots(generics.ListAPIView):
     serializer_class = None  
 
     def list(self, request, *args, **kwargs):
-        clinicid =  request.GET.get('clinicid')
-        date =  request.GET.get('date')
-        apptime =  request.GET.get('apptime')
-        doctor = request.GET.get('doctorid')
+        clinicid = request.GET.get('clinicid') or request.data.get('clinicid')
+        doctor = request.GET.get('doctorid') or request.data.get('doctorid')
+        date = request.GET.get('date') or request.data.get('date')
+        apptime = request.GET.get('apptime') or request.data.get('apptime')
+
 
         date_obj =  datetime.strptime(date , '%Y-%m-%d').date()
         getdayint =  date_obj.weekday()
 
-        apptime_obj =  None
-        if apptime:
-            apptime_obj =  datetime.strptime(apptime , '%H:%M')
+        # apptime_obj =  None
+        # if apptime:
+        #     apptime_obj =  datetime.strptime(apptime , '%H:%M')
 
         if not clinicid or not date :
             return Response({
@@ -184,8 +204,8 @@ class ClinicAvailableTimeSlots(generics.ListAPIView):
         available_slots = [s for s in slots if s not in booked ]
 
         # print("Getheap available sltos " , apptime_obj.strftime("%H:%M"))
-        if apptime_obj is not None :
-            available_slots.append(apptime_obj.strftime("%H:%M"))
+        # if apptime_obj is not None :
+        #     available_slots.append(apptime_obj.strftime("%H:%M"))
 
         available_slots.sort()
 

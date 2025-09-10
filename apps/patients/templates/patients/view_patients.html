@@ -21,7 +21,7 @@
 
                 <!-- Header -->
                 <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h3 class="section-title mb-0">{{ page_title }}</h3>
+                    <h3 class="section-title mb-0">View Patients</h3>
                     <a href="{% url 'add_appointment'  %}" class="btn btn-outline-secondary">Add Patient</a>
                 </div>
 
@@ -93,12 +93,12 @@
                 { data: "dob" },
                 { data: "p_age" },
 
-                  { 
+                { 
                     data: "userid",
                     render: function(data , type, row) {
                         return `
                             <a  href="/patients/patient-detail/${parseInt(row.userid)}/" 
-                            class="btn btn-sm btn-info">View</a>`;
+                            class="btn btn-sm btn-outline-info">View</a>`;
                     }
                 }
             ]
