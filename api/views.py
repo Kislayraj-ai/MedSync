@@ -4,7 +4,7 @@ from apps.clinics.models import Clinic , User , ClinicTime , DoctorProfile , Adm
 from apps.clinics.serializesrs import ClinicSerializer , DoctorSerializer ,PatientSerializer ,\
     ClinicTimeSlotsSerializer , AppointmentSerializer , ClinicUserSerializer
 from rest_framework import generics , status
-from apps.patients.models  import PatientProfile, Apointment
+from apps.patients.models  import PatientProfile, Apointment , PaymentHistory
 from rest_framework.response import Response
 from datetime import timedelta , datetime
 from rest_framework.views import APIView
@@ -16,7 +16,8 @@ import uuid
 from .utility import get_user_clinic_ids
 from rest_framework.permissions import AllowAny  , IsAdminUser
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.db.models import Q
+from django.db.models import Q , Sum
+from django.db.models.functions import ExtractMonth , ExtractYear
 # Create your views here.
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -332,3 +333,46 @@ class CreatePaypalOrderView(APIView):
                 approval_url = link["href"]
 
         return Response({"approval_url": approval_url})
+
+
+
+## dashbard apis
+class RevenueView(APIView):
+        
+    def get(self, request, *args, **kwargs):
+        # Filter only paid payments
+        qs = PaymentHistory.objects.filter(paid_on__isnull=False)
+
+        # Aggregate by month & year
+        revenue_data = (
+            qs
+            .annotate(year=ExtractYear('paid_on'), month=ExtractMonth('paid_on'))
+            .values('year', 'month')
+            .annotate(total_amount=Sum('amount'))
+            .order_by('year', 'month')
+        )
+
+        months = []
+        values = []
+
+        # Convert numeric month to string (optional)
+        import calendar
+        for r in revenue_data:
+            month_name = calendar.month_abbr[r['month']]
+            months.append(f"{month_name} {r['year']}")
+            values.append(r['total_amount'])
+
+        # Dummy growth data (you can calculate from payments as well)
+        growth_labels = ['Product A', 'Product B', 'Product C']
+        growth_values = [62, 48, 75]
+
+        return Response({
+            "totalRevenue": {
+                "months": months,
+                "values": values
+            },
+            "growth": {
+                "labels": growth_labels,
+                "values": growth_values
+            }
+        })

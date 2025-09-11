@@ -138,3 +138,4 @@ class PaymentHistory(models.Model):
         default= "0"
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    paid_on =  models.DateTimeField(null=True, blank=True)

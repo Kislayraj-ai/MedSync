@@ -29,4 +29,7 @@ urlpatterns =[
     ## get access token for the apis
     path("token/", views.CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+
+    ## dashboard data
+    path('revenue-data/' , views.RevenueView.as_view() , name="revenue_data"),
 ]

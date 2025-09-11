@@ -11,6 +11,7 @@ from django.db import transaction
 from django.urls import reverse
 import requests
 import traceback
+from django.utils import timezone
 
 # Create your views here.
 
@@ -372,6 +373,7 @@ class SuccessPaymentView(TemplateView):
                     appointment = Apointment.objects.get(id=int(appointment_id))
                     payment = PaymentHistory.objects.get(appointment=appointment)
                     payment.status = "1"
+                    payment.paid_on = timezone.now()
                     payment.save()
 
                     appointment.status = "1"
