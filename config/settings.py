@@ -42,7 +42,7 @@ DEBUG = os.environ.get("DEBUG", 'True').lower() in ['true', 'yes', '1']
 
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1" , "*"]
 
 # Current DJANGO_ENVIRONMENT
 ENVIRONMENT = os.environ.get("DJANGO_ENVIRONMENT", default="local")
@@ -124,7 +124,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -143,17 +142,37 @@ WSGI_APPLICATION = "config.wsgi.application"
 # }
 
 ## postgre
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "medsync",
-        "USER": "postgres",
-        "PASSWORD": "root",
-        "HOST": "localhost",
-        "PORT": "5432",
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "medsync",
+#         "USER": "postgres",
+#         "PASSWORD": "root",
+#         "HOST": "localhost",
+#         "PORT": "5432",
+#     }
+# }
 
+
+## for hosting online 
+DB_LIVE= os.getenv('DB_LIVE')
+if DB_LIVE not in ["False" , False]:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get('NAME'),
+            "USER": os.environ.get('USER'),
+            "PASSWORD":os.environ.get('PASSWORD'),
+            "HOST": os.environ.get('HOST'),
+            "PORT":os.environ.get('PORT'),
+        }
+    }
+
+
+
+
+# postgresql://
+# postgres:QXqksSoPqcIZWCKScjiYyJFYENOdzIuG@postgres.railway.internal:5432/railway
 
 # Password validation
 # https
@@ -197,6 +216,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     BASE_DIR / "src" / "assets",
 ]
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 MEDIA_URL = '/media/'
