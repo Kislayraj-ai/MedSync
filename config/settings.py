@@ -42,7 +42,9 @@ DEBUG = os.environ.get("DEBUG", 'True').lower() in ['true', 'yes', '1']
 
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1" , "*"]
+# ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1" , "*"]
+ALLOWED_HOSTS = ["*"]
+
 
 # Current DJANGO_ENVIRONMENT
 ENVIRONMENT = os.environ.get("DJANGO_ENVIRONMENT", default="local")
@@ -73,7 +75,7 @@ INSTALLED_APPS = [
     "api" ,
     "corsheaders" ,
     "apps.patients" ,
-    "django_mysql",
+    # "django_mysql",
 ]
 
 MIDDLEWARE = [
@@ -155,9 +157,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 ## for hosting online 
-DB_LIVE= os.getenv('DB_LIVE')
-if DB_LIVE not in ["False" , False]:
-    DATABASES = {
+# DB_LIVE= os.getenv('DB_LIVE')
+# if DB_LIVE not in ["False" , False]:
+DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.environ.get('NAME'),
@@ -169,10 +171,6 @@ if DB_LIVE not in ["False" , False]:
     }
 
 
-
-
-# postgresql://
-# postgres:QXqksSoPqcIZWCKScjiYyJFYENOdzIuG@postgres.railway.internal:5432/railway
 
 # Password validation
 # https
