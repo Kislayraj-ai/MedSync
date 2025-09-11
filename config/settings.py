@@ -44,16 +44,13 @@ DEBUG = os.environ.get("DEBUG", 'True').lower() in ['true', 'yes', '1']
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 # ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1" , "*"]
 ALLOWED_HOSTS = ["*"]
-trusted_origins = [
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://medsync-production-a694.up.railway.app" ,
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
 
-env_origin = os.environ.get("CSRF_TRUSTED_ORIGIN")
-if env_origin:
-    trusted_origins.append(env_origin)
-
-CSRF_TRUSTED_ORIGINS = trusted_origins
 
 
 # Current DJANGO_ENVIRONMENT
