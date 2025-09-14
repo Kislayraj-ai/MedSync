@@ -111,10 +111,12 @@ class Apointment(models.Model):
     status = models.CharField(
         choices=STATUS_CHOICES ,
         default="0",
+        max_length=100
     )
     is_active =  models.CharField(
         choices=ACTIVE_STATUS_CHOICES ,
         default="0",
+        max_length=100
     )
     created_at =  models.DateTimeField(auto_now_add=True)
 
@@ -135,7 +137,8 @@ class PaymentHistory(models.Model):
     appTime = models.TimeField(null=False)
     status = models.CharField(
         choices= PAYMENT_STATUS ,
-        default= "0"
+        default= "0",
+        max_length=100
     )
     created_at = models.DateTimeField(auto_now_add=True)
     paid_on =  models.DateTimeField(null=True, blank=True)

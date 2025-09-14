@@ -58,11 +58,13 @@
              <i class="bx bx-user bx-md me-3"></i><span>My Profile</span>
             </a>
           </li> {% endcomment %}
-          {% comment %} <li>
-            <a class="dropdown-item" href="javascript:void(0);">
-              <i class="bx bx-cog bx-md me-3"></i><span>Settings</span>
-            </a>
-          </li> {% endcomment %}
+       <li>
+          <a class="dropdown-item d-flex align-items-center" href="javascript:void(0);">
+            <i class="bx bx-cog bx-sm me-2"></i>
+            <span>Settings</span>
+          </a>
+        </li>
+
            <!--<li>
             <a class="dropdown-item" href="javascript:void(0);">
               <span class="d-flex align-items-center align-middle">
@@ -74,11 +76,13 @@
           <li>
             <div class="dropdown-divider my-1"></div>
           </li>
-          <li>
-            <a class="dropdown-item" href="{% url "auth_logout_basic" %}">
-              <i class="bx bx-power-off bx-md me-3"></i><span>Log Out</span>
+        <li>
+            <a class="dropdown-item d-flex align-items-center" href="{% url 'auth_logout_basic' %}">
+              <i class="bx bx-power-off bx-sm me-2"></i>
+              <span>Log Out</span>
             </a>
           </li>
+
         </ul>
       </li>
       <!--/ User -->

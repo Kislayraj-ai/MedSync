@@ -38,11 +38,20 @@ if not SECRET_KEY:
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", 'True').lower() in ['true', 'yes', '1']
+# DEBUG = os.environ.get("DEBUG", 'True').lower() in ['true', 'yes', '1']
 
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
+# ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1" , "*"]
+ALLOWED_HOSTS = ["*"]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://medsync-production-a694.up.railway.app" ,
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+
 
 # Current DJANGO_ENVIRONMENT
 ENVIRONMENT = os.environ.get("DJANGO_ENVIRONMENT", default="local")
@@ -73,7 +82,7 @@ INSTALLED_APPS = [
     "api" ,
     "corsheaders" ,
     "apps.patients" ,
-    "django_mysql",
+    # "django_mysql",
 ]
 
 MIDDLEWARE = [
@@ -124,7 +133,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -143,16 +151,32 @@ WSGI_APPLICATION = "config.wsgi.application"
 # }
 
 ## postgre
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "medsync",
+#         "USER": "postgres",
+#         "PASSWORD": "root",
+#         "HOST": "localhost",
+#         "PORT": "5432",
+#     }
+# }
+
+
+## for hosting online 
+# DB_LIVE= os.getenv('DB_LIVE')
+# if DB_LIVE not in ["False" , False]:
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "medsync",
-        "USER": "postgres",
-        "PASSWORD": "root",
-        "HOST": "localhost",
-        "PORT": "5432",
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get('NAME'),
+            "USER": os.environ.get('USER'),
+            "PASSWORD":os.environ.get('PASSWORD'),
+            "HOST": os.environ.get('HOST'),
+            "PORT":os.environ.get('PORT'),
+        }
     }
-}
+
 
 
 # Password validation
@@ -196,8 +220,13 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_DIRS = [
     BASE_DIR / "src" / "assets",
+    # os.path.join(BASE_DIR , "src")
 ]
 
+
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+DEBUG = False
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR , 'media')
