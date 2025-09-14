@@ -73,11 +73,15 @@
     $(document).ready(function() {
 
         let GET_BASE_URL = "{{ BASE_URL }}";
+        let csrftoken =  "{{carf_token}}";
 
         $('#clinicTable').DataTable({
             ajax: { 
                 type : 'GET',
-                url: `${GET_BASE_URL}/api/v1/patients`,
+                url: `${GET_BASE_URL}api/v1/patients/`,
+                headers: {
+                        'X-CSRFToken': csrftoken,
+                },
                 dataSrc: function (json) {
                     //console.log("Full Response:", json);
                     return json;

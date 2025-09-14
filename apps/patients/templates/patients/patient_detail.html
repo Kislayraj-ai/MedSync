@@ -33,12 +33,33 @@
 
 <div class="container py-4">
 
-  <!-- Header with status dropdown -->
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-    <h3 class="fw-bold mb-0">
-      <i class="bx bx-calendar-check me-2 text-primary"></i> Appointment Details
-    </h3>
+  <!-- Appointment Card -->
+  <div class="card shadow-sm border-0 rounded-4 mb-4">
+
+    <!-- Header -->
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-3">
+      <h3 class="fw-bold mb-0 text-primary">
+        <i class="bx bx-calendar-check me-2"></i> Appointment Details
+      </h3>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body">
+      <hr class="my-4">
+      <!-- Export Options -->
+      <div class="d-flex justify-content-end gap-2">
+        <a href="{% url 'patients_pdf_download' user_detail.id  %}" 
+          class="btn btn-outline-primary shadow-sm rounded-pill">
+          <i class="bx bxs-file-pdf me-1"></i> Export PDF
+        </a>
+        {% comment %} <a href="#" 
+          class="btn btn-outline-secondary shadow-sm rounded-pill">
+          <i class="bx bx-image me-1"></i> Export Image
+        </a> {% endcomment %}
+      </div>
+    </div>
   </div>
+
 
   <!-- Accordion Section -->
   <div class="accordion" id="patientAccordion">
@@ -179,6 +200,8 @@
         </div>
       </div>
     </div> {% endcomment %}
+
+
 <div class="card shadow-sm border-0 rounded-3 mt-4">
   <div class="card-header bg-light d-flex align-items-center">
     <i class="bx bx-time-five fs-4 me-2 text-secondary"></i>

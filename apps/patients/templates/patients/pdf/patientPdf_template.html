@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Appointment PDF Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            color: #333;
+            font-size: 13px;
+        }
+
+        h1, h2 {
+            color: #1e88e5;
+            margin-bottom: 15px;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            font-weight: bold;
+            font-size: 15px;
+            color: #1e88e5;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #1e88e5;
+        }
+
+        p {
+            margin: 3px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #fff;
+        }
+        .bg-success { background-color: #28a745; }
+        .bg-danger { background-color: #dc3545; }
+        .bg-info { background-color: #17a2b8; }
+        .bg-darkgreen { background-color: #006400; }
+        .bg-warning { background-color: #f2d201; color: #000; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+
+        th {
+            background: #f7f7f7;
+            font-size: 13px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 11px;
+            color: #777;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Patient Report</h1>
+
+    <!-- Patient Information -->
+    <div class="card">
+        <div class="card-header">Patient Information</div>
+        <p><strong>Name:</strong> {{ user_detail.first_name }} {{ user_detail.last_name }}</p>
+        <p><strong>Healthcare No:</strong> {{ patient_profile.healthcare_number }}</p>
+        <p><strong>Sex:</strong> {{ patient_profile.get_sex_display }}</p>
+        <p><strong>DOB:</strong> {{ patient_profile.dob }} ({{ patient_profile.age }} yrs)</p>
+        <p><strong>Marital Status:</strong> {{ patient_profile.get_marital_status_display }}</p>
+    </div>
+
+    <!-- Address -->
+    <div class="card">
+        <div class="card-header">Address</div>
+        <p><strong>Street:</strong> {{ patient_profile.street_address }}</p>
+        <p><strong>City:</strong> {{ patient_profile.city }}</p>
+        <p><strong>State:</strong> {{ patient_profile.state }}</p>
+        <p><strong>Country:</strong> {{ patient_profile.country }}</p>
+        <p><strong>Postal Code:</strong> {{ patient_profile.postal_code }}</p>
+    </div>
+
+    <!-- Emergency Contact -->
+    <div class="card">
+        <div class="card-header">Emergency Contact</div>
+        <p><strong>Name:</strong> {{ patient_profile.emergency_first_name }} {{ patient_profile.emergency_last_name }}</p>
+        <p><strong>Relationship:</strong> {{ patient_profile.emergency_relationship }}</p>
+        <p><strong>Contact:</strong> {{ patient_profile.emergency_contact_number }}</p>
+    </div>
+
+<!-- Appointment Info -->
+<div class="card">
+    <div class="card-header">Appointments</div>
+    {% if appointments %}
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="background-color: #f5f5f5; text-align: left;">
+                    <th style="padding: 8px; border: 1px solid #ddd;">#</th>
+                    <th style="padding: 8px; border: 1px solid #ddd;">Date</th>
+                    <th style="padding: 8px; border: 1px solid #ddd;">Doctor</th>
+                    <th style="padding: 8px; border: 1px solid #ddd;">Appointment Status</th>
+                    <th style="padding: 8px; border: 1px solid #ddd;">Payment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in appointments %}
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{{ forloop.counter }}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{{ app.date }}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">
+                        {{ app.doctor.first_name }} {{ app.doctor.last_name }}
+                    </td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">
+                        {% if app.is_active == '0' %}
+                            <span style="background:#28a745; color:#fff; padding:3px 6px; border-radius:4px;">Active</span>
+                        {% elif app.is_active == '1' %}
+                            <span style="background:#dc3545; color:#fff; padding:3px 6px; border-radius:4px;">Cancelled</span>
+                        {% elif app.is_active == '2' %}
+                            <span style="background:#006400; color:#fff; padding:3px 6px; border-radius:4px;">Completed</span>
+                        {% elif app.is_active == '3' %}
+                            <span style="background:#006400; color:#fff; padding:3px 6px; border-radius:4px;">Pending</span>
+                        {% else %}
+                            <span style="background:#17a2b8; color:#fff; padding:3px 6px; border-radius:4px;">Unknown</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">
+                        {% if app.payment %}
+                            <div>
+                                <p><strong>Amount:</strong> ₹ {{ app.payment.amount }}</p>
+                                <p><strong>Date:</strong> {{ app.payment.created_at|date:"M d, Y H:i" }}</p>
+                                <p>
+                                    <strong>Status:</strong>
+                                    {% if app.payment.status == '1' %}
+                                        <span style="background:#28a745; color:#fff; padding:3px 6px; border-radius:4px;">Paid</span>
+                                    {% elif app.payment.status == '0' %}
+                                        <span style="background:#f2d201; color:#000; padding:3px 6px; border-radius:4px;">Pending</span>
+                                    {% elif app.payment.status == '2' %}
+                                        <span style="background:#17a2b8; color:#fff; padding:3px 6px; border-radius:4px;">Partial Paid</span>
+                                    {% else %}
+                                        <span style="background:#dc3545; color:#fff; padding:3px 6px; border-radius:4px;">Failed</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        {% else %}
+                            <span style="color:#888;">No Payment Record</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="text-align:center; color:#999; margin-top:20px;">
+            No Appointments Found
+        </p>
+    {% endif %}
+</div>
+
+
+
+    <div class="footer">
+        Generated by MedSync © {{ now|date:"Y" }}
+    </div>
+
+</body>
+</html>

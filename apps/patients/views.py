@@ -12,6 +12,9 @@ from django.urls import reverse
 import requests
 import traceback
 from django.utils import timezone
+from django.template.loader  import render_to_string , get_template
+from xhtml2pdf import pisa
+from django.http import HttpResponse
 
 # Create your views here.
 
@@ -271,6 +274,7 @@ class PatientDetailView(TemplateView):
             context["page_title"] = 'Patient Detail' 
 
             pk = self.kwargs.get('pk')
+            # print("hit ehre  ")
 
             if pk is None:
                 messages.error(self.request, 'Please provide correct id')
@@ -279,7 +283,7 @@ class PatientDetailView(TemplateView):
 
             userDetail = (
                 User.objects
-                .select_related("patient_user")   # safe now, OneToOneField hai
+                .select_related("patient_user")
                 .prefetch_related("patient_user__appointment_patient__payment_appointment")
                 .get(pk=pk)
             )
@@ -305,7 +309,6 @@ class PatientDetailView(TemplateView):
             # print(context["appointments"] )
             return context
         except Exception as e :
-            # print(traceback.format_exc(e))
             print(e)
 
         
@@ -445,7 +448,7 @@ class AppointmentDetailView(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateLayout.init(self, super().get_context_data(**kwargs))
         context["BASE_URL"] = settings.BASE_URL
-        context["page_title"] = "Cancel Payment"
+        context["page_title"] = "Appointment Detail"
 
         pk =  self.kwargs.get('pk')
 
@@ -490,3 +493,89 @@ class AppointmentDetailView(TemplateView):
         except Exception:
             print(traceback.format_exc())
             return redirect("view_appointment_details", pk=self.kwargs.get("pk"))
+
+
+## get the pdf
+def PDfDownload (request , pk):
+    template = get_template("patients/pdf/appoinmentPdf_template.html")
+
+    # pk =  self.kwargs.get('pk')
+
+    appointment  = Apointment.objects.select_related(
+                'doctor',
+                'patient__patient',
+            ).prefetch_related(
+                "payment_appointment"
+            ).get(id=pk)
+        
+        
+        
+    patient = appointment.patient
+    user = appointment.patient.patient
+    doctor = appointment.doctor
+
+    payment_history = getattr(appointment, "payment_appointment", None)
+
+
+    # print(f"Here {payment_history}")
+    dataset = {
+        'appointment' : appointment ,
+        'patient' : patient ,
+        'user' : user , 'doctor' : doctor ,  'paymenthistory' : payment_history
+    }
+    # print("hre seg " , payment_history)
+    html = template.render(dataset)
+    
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'attachment; filename="appointment-report.pdf"'
+    
+    pisa.CreatePDF(html, dest=response)
+    return response
+
+
+def PatientPdfDownload(request , pk):
+            if pk is None:
+                    messages.error(request, 'Please provide correct id')
+                    return redirect('patient_list')
+
+
+            userDetail = (
+                User.objects
+                .select_related("patient_user")
+                .prefetch_related("patient_user__appointment_patient__payment_appointment")
+                .get(pk=pk)
+            )
+            patientProfile =  userDetail.patient_user
+            appointments = patientProfile.appointment_patient.all()
+            
+            appointment_data = [
+                {
+                    "appointment_id": app.id,
+                    "date": app.appdate,
+                    "doctor": app.doctor,
+                    "is_active": app.get_is_active_display() ,
+                    "payment": getattr(app, 'payment_appointment', None)
+                }
+                for app in appointments
+            ]
+
+            
+            # context["user_detail"] = userDetail
+            # context["patient_profile"] = patientProfile
+            # context["appointments"] = appointment_data
+
+
+            dataset = {
+                    'user_detail' : userDetail ,
+                    'patient_profile' : patientProfile ,
+                    'appointments' : appointment_data 
+                }
+        
+            template = get_template("patients/pdf/patientPdf_template.html")
+            html = template.render(dataset)
+    
+            response = HttpResponse(content_type="application/pdf")
+            response["Content-Disposition"] = 'attachment; filename="patient-report.pdf"'
+            
+            pisa.CreatePDF(html, dest=response)
+            return response

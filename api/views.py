@@ -91,15 +91,15 @@ class DoctorView(ModelViewSet):
 ## for patients
 
 class PatientListView(generics.ListAPIView):
-    # queryset = PatientProfile.objects.all()
-    serializer_class =  PatientSerializer
-    
+    queryset = PatientProfile.objects.all()
+    serializer_class = PatientSerializer
+
     def get_queryset(self):
-        qs = PatientProfile.objects.all()
+        qs = super().get_queryset()
         curruser = self.request.user
 
         # get clinic IDs for current user
-        clinic_ids = get_user_clinic_ids(curruser , AdminUserProfile , DoctorProfile)
+        clinic_ids = get_user_clinic_ids(curruser, AdminUserProfile, DoctorProfile)
         if clinic_ids is not None:
             qs = qs.filter(
                 appointment_patient__doctor__doctor_profile__clinic_id__in=clinic_ids
@@ -111,11 +111,14 @@ class PatientListView(generics.ListAPIView):
         clinicid = int(self.request.GET.get("clinicid", 0) or 0)
 
         if start and end:
-            start_dt = datetime.fromisoformat(start)
-            end_dt = datetime.fromisoformat(end)
-            qs = qs.filter(
-                appointment_patient__appdate__range=[start_dt.date(), end_dt.date()]
-            )
+            try:
+                start_dt = datetime.fromisoformat(start)
+                end_dt = datetime.fromisoformat(end)
+                qs = qs.filter(
+                    appointment_patient__appdate__range=[start_dt.date(), end_dt.date()]
+                )
+            except ValueError:
+                pass  # ignore invalid dates
 
         if clinicid > 0:
             qs = qs.filter(
@@ -123,8 +126,7 @@ class PatientListView(generics.ListAPIView):
             )
 
         return qs.distinct()
-
-
+    
 class ClinicAvailableTimeSlots(generics.ListAPIView):
 
     serializer_class = None  
