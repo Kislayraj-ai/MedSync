@@ -17,34 +17,53 @@
 
 {% block page_js %}
   {{ block.super }}
-<script src="{% static 'js/dashboards-analytics.js' %}"></script>
+
+<script>
+  let BASE_URL = "{{ BASE_URL }}";
+</script>
+
+
+<script src="{% static 'js/dashboards-analytics.js' %}?v=1.0"></script>
 {% endblock page_js %}
 
 {% block content %}
 
 <div class="row">
-  <div class="col-xxl-8 mb-6 order-0">
-    <div class="card">
-      <div class="d-flex align-items-start row">
-        <div class="col-sm-7">
-          <div class="card-body">
-            <h5 class="card-title text-primary mb-3">Congratulations John! 🎉</h5>
-            <p class="mb-6">You have done 72% more sales today.<br>Check your new badge in your profile.</p>
-
-            <a href="javascript:;" class="btn btn-sm btn-outline-primary">View Badges</a>
-          </div>
-        </div>
-        <div class="col-sm-5 text-center text-sm-left">
-          <div class="card-body pb-0 px-0 px-md-6">
-            <img src="{% static 'img/illustrations/man-with-laptop.png' %}" height="175" alt="View Badge User">
-          </div>
+<div class="col-xxl-12 mb-6 order-0">
+  <div class="card shadow-lg border-0 rounded-4 overflow-hidden position-relative">
+    <div class="row g-0">
+      
+      <!-- Left Content -->
+      <div class="col-md-7 p-5 d-flex flex-column justify-content-center">
+        <h2 class="fw-bold text-primary mb-3">👩‍⚕️ Welcome Back!</h2>
+        <p class="text-muted fs-6 mb-4">
+          Stay on top of your health records, prescriptions, and appointments.  
+          Let’s make today a healthier day.
+        </p>
+        {% comment %} <a href="#" class="btn btn-primary btn-lg px-4 rounded-pill shadow-sm">
+          View Dashboard
+        </a> {% endcomment %}
+      </div>
+      
+      <!-- Right Illustration (sticks to bottom) -->
+      <div class="col-md-5 position-relative">
+        <div class="h-100 d-flex align-items-end justify-content-center">
+          <img 
+            src="{% static 'img/illustrations/med2.png' %}" 
+            class="img-fluid" 
+            style="max-height: 250px; object-fit: contain;" 
+            alt="Medical Illustration">
         </div>
       </div>
     </div>
   </div>
+</div>
+
+
+<div class="row">  
   <div class="col-lg-4 col-md-4 order-1">
     <div class="row">
-      <div class="col-lg-6 col-md-12 col-6 mb-6">
+      <div class="col-lg-12 col-md-12 col-6 mb-6">
         <div class="card h-100">
           <div class="card-body">
             <div class="card-title d-flex align-items-start justify-content-between mb-4">
@@ -62,12 +81,13 @@
               </div>
             </div>
             <p class="mb-1">Profit</p>
-            <h4 class="card-title mb-3">$12,628</h4>
-            <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +72.80%</small>
+            <h4 class="card-title mb-3">{{ today_revenue }} </h4>
+            <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> {% if is_positive %}+ {% else %}-{% endif %}{{ change_percent }}%</small>
           </div>
         </div>
       </div>
-      <div class="col-lg-6 col-md-12 col-6 mb-6">
+
+      <div class="col-lg-12 col-md-12 col-6 mb-6">
         <div class="card h-100">
           <div class="card-body">
             <div class="card-title d-flex align-items-start justify-content-between mb-4">
@@ -84,19 +104,22 @@
                 </div>
               </div>
             </div>
-            <p class="mb-1">Sales</p>
-            <h4 class="card-title mb-3">$4,679</h4>
-            <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small>
+            <p class="mb-1">Appointment</p>
+            <small>Current Month</small>
+            <h4 class="card-title mb-3">{{ appointment }}</h4>
+            {% comment %} <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small> {% endcomment %}
           </div>
         </div>
       </div>
+
     </div>
   </div>
+  
   <!-- Total Revenue -->
   <div class="col-12 col-xxl-8 order-2 order-md-3 order-xxl-2 mb-6">
     <div class="card">
       <div class="row row-bordered g-0">
-        <div class="col-lg-8">
+        <div class="col-lg-12">
           <div class="card-header d-flex align-items-center justify-content-between">
             <div class="card-title mb-0">
               <h5 class="m-0 me-2">Total Revenue</h5>
@@ -114,7 +137,7 @@
           </div>
           <div id="totalRevenueChart" class="px-3"></div>
         </div>
-        <div class="col-lg-4 d-flex align-items-center">
+        {% comment %} <div class="col-lg-4 d-flex align-items-center">
           <div class="card-body px-xl-9">
             <div class="text-center mb-6">
               <div class="btn-group">
@@ -167,14 +190,20 @@
                   <h6 class="mb-0">$41.2k</h6>
                 </div>
               </div>
-            </div>
+            </div> 
+
           </div>
-        </div>
+        </div> {% endcomment %}
       </div>
     </div>
   </div>
+
+  {% comment %} for the total revenue main {% endcomment %}
+
+
+
   <!--/ Total Revenue -->
-  <div class="col-12 col-md-8 col-lg-12 col-xxl-4 order-3 order-md-2">
+  {% comment %} <div class="col-12 col-md-8 col-lg-12 col-xxl-4 order-3 order-md-2">
     <div class="row">
       <div class="col-6 mb-6">
         <div class="card h-100">
@@ -199,6 +228,7 @@
           </div>
         </div>
       </div>
+      
       <div class="col-6 mb-6">
         <div class="card h-100">
           <div class="card-body">
@@ -221,7 +251,8 @@
             <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.14%</small>
           </div>
         </div>
-      </div>
+      </div> 
+
       <div class="col-12 mb-6">
         <div class="card">
           <div class="card-body">
@@ -241,9 +272,14 @@
           </div>
         </div>
       </div>
+
+
     </div>
-  </div>
+  </div> {% endcomment %}
+
 </div>
+
+{% comment %} 
 <div class="row">
   <!-- Order Statistics -->
   <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-6">
@@ -383,7 +419,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> 
   <!--/ Expense Overview -->
 
   <!-- Transactions -->
@@ -493,5 +529,5 @@
     </div>
   </div>
   <!--/ Transactions -->
-</div>
+</div>{% endcomment %}
 {% endblock %}

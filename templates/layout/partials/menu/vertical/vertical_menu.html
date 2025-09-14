@@ -28,7 +28,7 @@
       <a href="javascript:void(0);" class="menu-link menu-toggle">
         <i class="menu-icon tf-icons bx bx-home-smile"></i>
         <div class="text-truncate" data-i18n="Dashboards">Dashboards</div>
-        <span class="badge bg-danger rounded-pill ms-auto">5</span>
+        {% comment %} <span class="badge bg-danger rounded-pill ms-auto">5</span> {% endcomment %}
       </a>
       <ul class="menu-sub">
         <li class="menu-item {% if 'index' == request.resolver_match.url_name %}active{% endif %}">
@@ -43,7 +43,7 @@
     <!-- clinic management -->
     <li class="menu-item {% if '/clinic/' in request.path  %}active open{% endif %}">
       <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons bx bx-layout"></i>
+        <i class="menu-icon tf-icons bx bx-clinic"></i>
         <div class="text-truncate" data-i18n="Layouts">Clinic</div>
       </a>
       <ul class="menu-sub">
@@ -70,11 +70,11 @@
     </li>
 
 
-    <!--Patients-->
+        <!--Patients-->
 
         <li class="menu-item {% if '/patients/' in request.path  %}active open{% endif %}">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
-            <i class="menu-icon tf-icons bx bx-layout"></i>
+            <i class="menu-icon tf-icons bx bx-user-circle"></i>
             <div class="text-truncate" data-i18n="Layouts">Patients</div>
           </a>
           <ul class="menu-sub">

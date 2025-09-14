@@ -20,7 +20,7 @@
 
 {% block page_js %}
   {{ block.super }}
-    <script src="{% static 'js/dashboards-analytics.js' %}"></script>
+    {% comment %} <script src="{% static 'js/dashboards-analytics.js' %}"></script> {% endcomment %}
 {% endblock page_js %}
 
 {% block content %}

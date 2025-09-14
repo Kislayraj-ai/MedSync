@@ -1,5 +1,6 @@
 from django.urls import path , reverse_lazy
-from .views import PatientAdd  , PatientEdit , AddAppointmentView , CompletePaymentView , SuccessPaymentView , CancelPaymentView , AppointmentDetailView , AllAppointmentView , PatientDetailView
+from .views import PatientAdd  , PatientEdit , AddAppointmentView , CompletePaymentView , SuccessPaymentView , CancelPaymentView ,\
+    AppointmentDetailView , AllAppointmentView , PatientDetailView , PDfDownload , PatientPdfDownload
 from django.views.generic import RedirectView
 
 urlpatterns = [
@@ -23,5 +24,7 @@ urlpatterns = [
     path("paypal/success-payment/" , SuccessPaymentView.as_view(template_name="patients/success.html") , name='success_payment' ),
     path("paypal/cancel-payment/" , CancelPaymentView.as_view(template_name="patients/cancel.html") , name='cancel_payment' ),
 
-
+    # make pdf doenload 
+    path("appointment-pdf-download/<int:pk>" , PDfDownload , name="appointment_pdf_download"),
+    path("patient-pdf-download/<int:pk>" , PatientPdfDownload , name="patients_pdf_download")
 ]

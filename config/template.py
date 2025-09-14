@@ -5,9 +5,9 @@
 # Theme Variables
 # ? Personalize template by changing theme variables (For ex: Name, URL Version etc...)
 THEME_VARIABLES = {
-    "creator_name": "MedSync",
+    "creator_name": "Kislay Raj",
     "creator_url": "",
-    "template_name": "medsync",
+    "template_name": "medSync",
     "template_suffix": "Django Admin Template",
     "template_version": "2.0",
     "template_free": True,
