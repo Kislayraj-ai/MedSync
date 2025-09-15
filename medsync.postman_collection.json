@@ -1,0 +1,242 @@
+{
+	"info": {
+		"_postman_id": "d2902bf7-688e-48ca-87d1-d2364230afa0",
+		"name": "medsync",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25811355"
+	},
+	"item": [
+		{
+			"name": "Get Token",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\" : \"adminuser1\" ,\r\n    \"password\" : \"test123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/v1/token/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"token",
+						""
+					],
+					"query": [
+						{
+							"key": "start",
+							"value": "2025-08-24T00:00:00+05:30",
+							"disabled": true
+						},
+						{
+							"key": "end",
+							"value": "2025-08-31T00:00:00+05:30",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Patients List",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3NDkwMDAyLCJpYXQiOjE3NTc0ODk3MDIsImp0aSI6ImZjNTVhYzlhZDI1MDQ5YzliYTI1ZGRiZTVhMjJjYmU5IiwidXNlcl9pZCI6IjMifQ.1me6jDS7Ee2iNFU6Z_SQCZ2sez0mFe7A6_9WmJzVDWM",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/v1/patients/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"patients",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Clinic User",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3NDkyNjg1LCJpYXQiOjE3NTc0OTIzODUsImp0aSI6ImQxM2JlNzMyMzYxMzQ4OThhZjE1MTgxMDdmZDQ1YjljIiwidXNlcl9pZCI6IjMifQ.4JWrNiI-moQx14kosslbl581wbJ9q4UyXrJF6q6a48k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/v1/get-clinic-users/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"get-clinic-users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh Token",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cache-Control",
+						"value": "no-cache",
+						"name": "cache-control",
+						"type": "text"
+					},
+					{
+						"key": "Postman-Token",
+						"value": "<calculated when request is sent>",
+						"name": "postman-token",
+						"type": "text"
+					},
+					{
+						"key": "Content-Length",
+						"value": "0",
+						"name": "content-length",
+						"type": "text"
+					},
+					{
+						"key": "Host",
+						"value": "<calculated when request is sent>",
+						"name": "host",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": "PostmanRuntime/7.39.1",
+						"name": "user-agent",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "*/*",
+						"name": "accept",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": "gzip, deflate, br",
+						"name": "accept-encoding",
+						"type": "text"
+					},
+					{
+						"key": "Connection",
+						"value": "keep-alive",
+						"name": "connection",
+						"type": "text"
+					},
+					{
+						"key": "refresh",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1NzU3NzkyMSwiaWF0IjoxNzU3NDkxNTIxLCJqdGkiOiI5Yzg4ODJhNjRjNjc0OTM0YmJlMmU4NjA5MjdhOTkxNSIsInVzZXJfaWQiOiIzIn0.GCbpYbrK7gNoBoc2jCtuQc_Q2kblo-AcBJRgajBI-m8",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"refresh\" : \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1NzU4MzAwNSwiaWF0IjoxNzU3NDk2NjA1LCJqdGkiOiI2ZTRiZDFjMDQxMmY0NjAyYjVmMzk1MDM4ZGQ2YzkzYSIsInVzZXJfaWQiOiIzIn0.HyUdg7o-MK0Ar-5aIxfSThaMel5UGGrrMWQxZoMXi48\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/v1/token/refresh/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"token",
+						"refresh",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Appointment",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3NDkyNjg1LCJpYXQiOjE3NTc0OTIzODUsImp0aSI6ImQxM2JlNzMyMzYxMzQ4OThhZjE1MTgxMDdmZDQ1YjljIiwidXNlcl9pZCI6IjMifQ.4JWrNiI-moQx14kosslbl581wbJ9q4UyXrJF6q6a48k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/v1/get-appointment/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"get-appointment",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
